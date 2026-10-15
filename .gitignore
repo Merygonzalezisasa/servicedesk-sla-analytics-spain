@@ -1,0 +1,33 @@
+# --- Secretos: nunca se versionan ---
+.env
+
+# --- Plantilla de terceros: material de referencia, no es obra de este proyecto ---
+PLANTILLA_PORTFOLIO_ANALISTA_DATOS.md
+
+# --- Entorno virtual de Python ---
+.venv/
+
+# --- Python ---
+__pycache__/
+*.pyc
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+
+# --- Logs: se regeneran en cada corrida (la carpeta se conserva con .gitkeep) ---
+logs/*.log
+
+# --- Datos generados ---
+# Las tablas de hechos son reproducibles con el generador (SEED fija) y pueden pesar.
+data/raw/fact_*.csv
+data/processed/*.csv
+
+# --- Power BI (formato PBIP): caché y ajustes locales ---
+03_powerbi/**/.pbi/localSettings.json
+03_powerbi/**/.pbi/cache.abf
+
+# --- Sistema operativo y editor ---
+Thumbs.db
+desktop.ini
+.DS_Store
+.vscode/

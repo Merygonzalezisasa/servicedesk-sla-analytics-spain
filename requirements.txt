@@ -1,0 +1,25 @@
+# Dependencias del proyecto, con versiones fijadas para que sea reproducible.
+# Probado con Python 3.12.10 en Windows 11 (2026-10-15).
+# Instalar dentro del entorno virtual:  pip install -r requirements.txt
+
+# --- Datos y generación sintética ---
+pandas==3.0.6
+numpy==2.5.4
+Faker==40.43.0
+
+# --- Extracción de APIs y configuración ---
+requests==2.34.2
+python-dotenv==1.2.4
+
+# --- Conexión a PostgreSQL ---
+SQLAlchemy==2.1.4
+psycopg2-binary==2.9.13
+
+# --- Análisis y visualización (Fase 4) ---
+jupyter==1.1.1
+matplotlib==3.11.2
+seaborn==0.13.2
+scipy==1.18.1
+scikit-learn==1.9.1
+statsmodels==0.15.0
+prophet==1.5.0
