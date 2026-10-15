@@ -1,7 +1,7 @@
 # Progreso — Brújula Soporte IT · Service Desk SLA Analytics
 
 ## Estado actual
-**Fase:** 0.5 (Entorno) · **Paso:** 1 (diagnóstico) · **Última sesión:** 2026-10-15
+**Fase:** 1 (ETL) · **Paso:** 1 de 5 · **Última sesión:** 2026-10-15
 
 ## Bitácora
 ### Fase 0 — Decidir ✅ (2026-10-15)
@@ -34,7 +34,7 @@
 - [x] Paso 6 — Identidad: Rosmary González · Brújula Soporte IT ·
       repo `servicedesk-sla-analytics-spain`. Alcance y limitaciones en FICHA §8. **Ficha aprobada.**
 
-### Fase 0.5 — Entorno 🚧
+### Fase 0.5 — Entorno ✅ (2026-10-15)
 - [x] Paso 1 — Diagnóstico: Python 3.14.0, Git 2.55, VS Code 1.141, Power BI Desktop instalados.
       Faltan PostgreSQL y Docker. Usuario en el grupo Administradores; winget disponible.
       Decisión: **sin Docker** → instalador oficial PostgreSQL 16 (EDB) vía winget.
@@ -60,12 +60,35 @@
       Arreglo: las tildes salían rotas (cp1252) → `encoding="utf-8"` en subprocess.
       Pregunta de control (¿por qué probar la API desde Python?): no la sabía → explicada
       (proxy, certificados y user-agent afectan a Python distinto que al navegador/PowerShell).
-- [ ] Paso 5 — Repo en GitHub + primer commit · SETUP.md  ← ACÁ VOY
+- [x] Paso 5 — Repo en GitHub + primer commit · SETUP.md
   - [x] SETUP.md (instalación + 7 problemas resueltos), README.md provisional, LICENSE (MIT).
   - [x] .gitignore verificado: .env, .venv, logs y hechos ignorados; la PLANTILLA no se publica
         (material de terceros).
-  - [ ] Repo `Merygonzalezisasa/servicedesk-sla-analytics-spain` creado en la web (vacío).
-  - [ ] git init + primer commit + push.
+  - [x] Repo `Merygonzalezisasa/servicedesk-sla-analytics-spain` creado en la web (público, vacío).
+  - [x] `git init -b main` + `git add .` → 14 archivos preparados; `.env`, `.venv` y la plantilla
+        fuera (verificado con `git status`).
+  - [x] Commit `fe84a24` + `git push -u origin main`. Verificado: 14 archivos en GitHub, sin `.env`.
+  - Pregunta de control (¿por qué `git status` antes del commit?): no respondida → explicada.
+
+### Fase 1 — ETL 🚧
+- [ ] Paso 1 — Extractores de las APIs  ← ACÁ VOY
+  - [x] `01_etl/comun.py`: rutas, .env, logging (logs/ + consola), GET con timeout y reintentos
+        con espera creciente (solo fallos transitorios: red, timeout, 429, 5xx).
+  - [x] `01_etl/extract_festivos.py` + `data/manual/festivos_madrid_correcciones.csv`
+        → `data/raw/festivos_madrid.csv`: 30 festivos (15/año, 23 en día laborable).
+        La API manda; el CSV manual solo añade: Santiago Apóstol 2024 y 2025 (verificado en los
+        decretos de la Comunidad) y San Isidro + Almudena 2024 y 2025 (**pendientes de BOCM**).
+  - [x] `01_etl/extract_clima.py` → `data/raw/clima_madrid.csv`: 731 días, 0 nulos,
+        Tmax 4,4–40,7 °C, días > 35 °C: 41 (2024) y 43 (2025).
+  - [x] Checkpoint: la estudiante corrió ambos scripts (12:54), mismo resultado → reproducible.
+  - [x] Pregunta de control (ffill en temperatura, 0 en lluvia): respondida por relevancia de
+        negocio; se explicó el motivo estadístico (la temperatura es continua y persistente; la
+        lluvia es intermitente: 466 de 731 días sin lluvia).
+  - [ ] Commit del Paso 1.
+- [ ] Paso 2 — Generador sintético (`generate_tickets_data.py`): dimensiones
+- [ ] Paso 3 — Generador sintético: tickets, historial de estados y cálculo de SLA
+- [ ] Paso 4 — Carga a PostgreSQL con upsert (`load_to_postgres.py`)
+- [ ] Paso 5 — Verificación de la carga (`verificar_carga.py`)
 
 - [x] Proyecto movido fuera de OneDrive a `C:\Proyectos\servicedesk-sla-analytics-spain`
       (3 archivos, hash verificado). La estudiante tiene cuenta de GitHub.
