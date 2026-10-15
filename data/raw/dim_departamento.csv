@@ -1,0 +1,6 @@
+departamento_id,nombre,rol,n_agentes,nivel_soporte
+1,Service Desk N1,"Recepción, triaje y resolución de primer nivel",12,N1
+2,Soporte Aplicaciones N2,Errores funcionales de las aplicaciones del cliente,9,N2
+3,Infraestructura,"Servidores, red, cloud y caídas de servicio",6,N2
+4,Desarrollo,Bugs que requieren cambio de código,5,N3
+5,Seguridad,"Accesos, vulnerabilidades e incidentes de seguridad",3,N3

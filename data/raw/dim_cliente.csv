@@ -1,0 +1,41 @@
+cliente_id,nombre,sector,comunidad_autonoma,nivel_contrato,cuota_mensual_eur,n_usuarios,fecha_alta
+CLI-001,Energía Moles S.L.,Energía,País Vasco,Gold,38500,1387,2021-11-06
+CLI-002,Consorcio Leal S.A.,Administración pública,Cataluña,Gold,26500,1207,2018-05-31
+CLI-003,Comercial Galván S.L.,Retail,Galicia,Gold,32500,2857,2015-07-25
+CLI-004,Clínicas Miranda S.A.,Sanidad,Galicia,Gold,26500,878,2022-10-08
+CLI-005,Comercial Valera S.A.,Retail,Comunidad de Madrid,Gold,26000,2967,2016-10-22
+CLI-006,Clínicas Segarra S.A.,Sanidad,Comunidad de Madrid,Gold,26000,1935,2018-05-14
+CLI-007,Consorcio Landa S.A.,Administración pública,Comunidad de Madrid,Gold,26000,2776,2016-03-19
+CLI-008,Energía Huerta S.A.,Energía,Comunidad de Madrid,Gold,31000,1255,2016-03-09
+CLI-009,Seguros Romero S.A.,Seguros,Comunidad de Madrid,Silver,9500,490,2020-06-20
+CLI-010,Transportes Paredes S.A.,Logística,Cataluña,Silver,14000,200,2022-10-17
+CLI-011,Banca Chacón S.A.,Banca,Cataluña,Silver,17500,527,2019-09-24
+CLI-012,Consorcio Uriarte S.L.,Administración pública,Comunidad de Madrid,Silver,11000,382,2024-09-01
+CLI-013,Transportes Arévalo S.A.,Logística,Comunitat Valenciana,Silver,10500,721,2017-07-18
+CLI-014,Comercial Coronado S.A.,Retail,Comunidad de Madrid,Silver,13500,852,2017-11-12
+CLI-015,Transportes Roca S.L.,Logística,Comunidad de Madrid,Silver,8500,423,2018-09-21
+CLI-016,Banca Plaza S.A.,Banca,Comunidad de Madrid,Silver,10500,844,2017-01-29
+CLI-017,Consorcio Solé S.A.,Administración pública,Comunidad de Madrid,Silver,15500,533,2022-06-29
+CLI-018,Seguros Alberdi S.A.,Seguros,Andalucía,Silver,18000,599,2020-04-11
+CLI-019,Clínicas Lasa S.A.,Sanidad,País Vasco,Silver,15500,520,2017-12-12
+CLI-020,Seguros Cantón S.L.,Seguros,País Vasco,Silver,11000,741,2021-10-14
+CLI-021,Seguros Royo S.L.,Seguros,Cataluña,Silver,15000,837,2020-12-28
+CLI-022,Transportes Santiago S.A.,Logística,País Vasco,Silver,12000,453,2018-09-09
+CLI-023,Clínicas Lago S.L.,Sanidad,Andalucía,Bronze,3000,143,2018-01-11
+CLI-024,Comercial Escalona S.L.,Retail,Comunidad de Madrid,Bronze,2000,100,2022-04-05
+CLI-025,Consorcio Camino S.A.,Administración pública,Comunidad de Madrid,Bronze,2500,175,2022-04-27
+CLI-026,Consorcio Martín S.L.,Administración pública,Comunitat Valenciana,Bronze,3500,186,2025-05-28
+CLI-027,Banca Vera S.L.,Banca,Andalucía,Bronze,2500,201,2025-02-27
+CLI-028,Seguros Flor S.L.,Seguros,Comunidad de Madrid,Bronze,4000,183,2023-03-08
+CLI-029,Banca Pereira S.L.,Banca,Comunidad de Madrid,Bronze,2000,152,2019-04-20
+CLI-030,Transportes Cuéllar S.L.,Logística,Comunidad de Madrid,Bronze,5500,159,2024-06-27
+CLI-031,Banca Abascal S.L.,Banca,Cataluña,Bronze,4500,70,2022-08-03
+CLI-032,Seguros Morante S.L.,Seguros,Andalucía,Bronze,3000,41,2023-02-04
+CLI-033,Comercial Aliaga S.L.,Retail,País Vasco,Bronze,2000,41,2022-02-27
+CLI-034,Energía Parejo S.A.,Energía,Castilla y León,Bronze,3000,81,2018-12-14
+CLI-035,Energía Meléndez S.L.,Energía,Cataluña,Bronze,3500,196,2025-06-23
+CLI-036,Energía Barco S.L.,Energía,Cataluña,Bronze,5000,190,2020-01-14
+CLI-037,Consorcio Bermúdez S.L.,Administración pública,Cataluña,Bronze,4000,238,2020-01-19
+CLI-038,Banca Torre S.A.,Banca,Cataluña,Bronze,3500,205,2018-09-24
+CLI-039,Transportes Bayón S.A.,Logística,Castilla y León,Bronze,3500,65,2024-12-10
+CLI-040,Energía Casas S.A.,Energía,Aragón,Bronze,2500,63,2024-06-21

@@ -1,0 +1,36 @@
+agente_id,nombre,departamento_id,nivel_soporte,seniority,fecha_alta
+AGT-001,Dani Amaya,1,N1,junior,2021-06-09
+AGT-002,Leonardo Hierro,1,N1,junior,2022-04-22
+AGT-003,Emilio Calatayud,1,N1,junior,2017-11-24
+AGT-004,Manu Bonet,1,N1,junior,2021-10-03
+AGT-005,Telmo Antón,1,N1,junior,2021-01-08
+AGT-006,Ciro Gil,1,N1,junior,2016-04-02
+AGT-007,Anselma Amor,1,N1,junior,2017-12-23
+AGT-008,Heliodoro Rivas,1,N1,senior,2020-10-09
+AGT-009,Vidal Lobo,1,N1,senior,2017-11-15
+AGT-010,Ruth Agudo,1,N1,junior,2022-11-19
+AGT-011,Noelia Cuervo,1,N1,senior,2022-06-15
+AGT-012,Telmo Nieto,1,N1,junior,2025-06-26
+AGT-013,Fabricio Garrido,2,N2,senior,2018-05-13
+AGT-014,Nicodemo Calatayud,2,N2,senior,2022-06-30
+AGT-015,Ricardo Caballero,2,N2,junior,2016-10-15
+AGT-016,Rebeca Núñez,2,N2,junior,2019-01-20
+AGT-017,Juan Luis Aroca,2,N2,senior,2021-02-18
+AGT-018,Ángel Casanovas,2,N2,senior,2022-03-17
+AGT-019,Reyes Bermúdez,2,N2,junior,2023-11-05
+AGT-020,Lázaro Pardo,2,N2,junior,2020-09-11
+AGT-021,Gregorio Baños,2,N2,junior,2020-11-28
+AGT-022,Gisela Goñi,3,N2,senior,2016-05-22
+AGT-023,Luis Miguel Bernal,3,N2,junior,2022-07-29
+AGT-024,Joan Cabrero,3,N2,senior,2023-04-11
+AGT-025,Leopoldo Santana,3,N2,senior,2019-03-27
+AGT-026,Perlita Patiño,3,N2,senior,2021-05-29
+AGT-027,Raimundo Padilla,3,N2,junior,2017-05-20
+AGT-028,Herminia Lasa,4,N3,junior,2017-10-12
+AGT-029,Isabela Bellido,4,N3,junior,2021-12-20
+AGT-030,Fabiola Donoso,4,N3,senior,2021-03-07
+AGT-031,Luisina Hierro,4,N3,junior,2020-07-17
+AGT-032,Óscar Pino,4,N3,junior,2017-05-22
+AGT-033,Ángela Gimenez,5,N3,junior,2018-04-18
+AGT-034,Moreno Barba,5,N3,senior,2021-10-28
+AGT-035,Paca Antón,5,N3,junior,2017-12-12

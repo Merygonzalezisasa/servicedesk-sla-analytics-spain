@@ -1,0 +1,11 @@
+sla_id,tipo,prioridad,objetivo_respuesta_min,objetivo_resolucion_min,reloj,computa_facturacion
+INC-P1,Incidencia,P1,15,240,24x7,True
+INC-P2,Incidencia,P2,30,480,laboral,True
+INC-P3,Incidencia,P3,120,1080,laboral,True
+INC-P4,Incidencia,P4,240,2160,laboral,True
+PET-P2,Petición,P2,120,1080,laboral,True
+PET-P3,Petición,P3,240,2160,laboral,True
+PET-P4,Petición,P4,480,4320,laboral,True
+TAR-P2,Tarea,P2,240,1620,laboral,False
+TAR-P3,Tarea,P3,480,3240,laboral,False
+TAR-P4,Tarea,P4,540,5400,laboral,False

@@ -83,4 +83,7 @@ Resultado el 2026-10-15: **9/9 en verde — ENTORNO LISTO.**
 | psql: error de sintaxis al crear el rol | Se pegó texto de más y el búfer quedó a medias (prompt `postgres-#`) | `\r` limpia el búfer; ejecutar cada comando solo cuando el prompt es `postgres=#` |
 | Tildes rotas en la salida del script ("GonzÃ¡lez") | Windows leía la salida de git como cp1252 | `encoding="utf-8"` en `subprocess.run` |
 | Aviso "Importing plotly failed" al importar Prophet | Prophet usa plotly solo para gráficos interactivos | Inofensivo: los gráficos se hacen con matplotlib |
+| `git commit` → "switch `m' requires a value" | El mensaje no llegó: comando partido en dos líneas al copiarlo o comillas tipográficas | Escribir el commit a mano, en una línea, con comillas rectas |
+| `git commit` abrió **Vim** y un aviso de archivo `.swp` | Sin `-m`, git abre su editor por defecto (Vim) | Pulsar `S`, luego `:q!`; `git config --global core.editor "code --wait"` para usar VS Code |
+| `git push` → "Everything up-to-date" | No había commit nuevo: solo `git add` | `git add` → `git commit` → `git push`, en ese orden |
 | La carpeta del proyecto estaba en OneDrive | `.venv` y datos generan miles de archivos que sincronizar | Proyecto movido a `C:\Proyectos\` ; el respaldo es GitHub |

@@ -71,7 +71,7 @@
   - Pregunta de control (¿por qué `git status` antes del commit?): no respondida → explicada.
 
 ### Fase 1 — ETL 🚧
-- [ ] Paso 1 — Extractores de las APIs  ← ACÁ VOY
+- [x] Paso 1 — Extractores de las APIs
   - [x] `01_etl/comun.py`: rutas, .env, logging (logs/ + consola), GET con timeout y reintentos
         con espera creciente (solo fallos transitorios: red, timeout, 429, 5xx).
   - [x] `01_etl/extract_festivos.py` + `data/manual/festivos_madrid_correcciones.csv`
@@ -84,8 +84,20 @@
   - [x] Pregunta de control (ffill en temperatura, 0 en lluvia): respondida por relevancia de
         negocio; se explicó el motivo estadístico (la temperatura es continua y persistente; la
         lluvia es intermitente: 466 de 731 días sin lluvia).
-  - [ ] Commit del Paso 1.
-- [ ] Paso 2 — Generador sintético (`generate_tickets_data.py`): dimensiones
+  - [x] Commit `0332790` subido. (Incidencia: `git commit` sin mensaje abrió Vim → `:q!`;
+        editor de git cambiado a VS Code con `core.editor "code --wait"`.)
+- [ ] Paso 2 — Generador: dimensiones (calendario, departamentos, agentes, vacaciones, clientes,
+      SLA, tramos)  ← ACÁ VOY
+  - [x] `01_etl/generate_tickets_data.py` (SEED=42) → 7 CSV en data/raw: dim_tiempo (731; 500
+        laborables, 19 post-festivo, 5 puentes), dim_departamento (5), dim_agente (35),
+        agente_ausencia (405: 396 vacaciones + 9 bajas), dim_cliente (40; 7 altas en el período),
+        dim_sla (10), dim_tramo_ajuste (11).
+  - [x] Correlación 6 comprobada en los datos: agentes ausentes en agosto **32,3 %** (julio 19 %,
+        diciembre 15 %, resto 2–6 %). Vacaciones: mediana 22 días laborables por agente y año.
+  - [x] Reproducible: dos corridas → mismos hashes de los 7 CSV.
+  - [x] Checkpoint de la estudiante (14:32): mismo resultado, agosto 32,3 % → reproducible en su
+        ejecución.
+  - [ ] Pregunta de control (¿qué pasa sin SEED?) + commit.
 - [ ] Paso 3 — Generador sintético: tickets, historial de estados y cálculo de SLA
 - [ ] Paso 4 — Carga a PostgreSQL con upsert (`load_to_postgres.py`)
 - [ ] Paso 5 — Verificación de la carga (`verificar_carga.py`)
