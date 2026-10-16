@@ -1,7 +1,7 @@
 # Progreso — Brújula Soporte IT · Service Desk SLA Analytics
 
 ## Estado actual
-**Fase:** 1 (ETL) · **Paso:** 3 de 5 · **Última sesión:** 2026-10-15
+**Fase:** 1 (ETL) · **Paso:** 4 de 5 · **Última sesión:** 2026-10-16
 
 ## Bitácora
 ### Fase 0 — Decidir ✅ (2026-10-15)
@@ -100,8 +100,8 @@
   - [x] Pregunta de control (¿qué pasa sin SEED?): bien ("los datos serían aleatorios"); se añadió
         la consecuencia: los números del README no coincidirían con lo que obtiene quien lo clone.
   - [x] Commit `9126b28` subido.
-- [ ] Paso 3 — Tickets, historial de estados y cálculo del SLA  ← ACÁ VOY
-      Diseño propuesto en el chat; pendiente de validar 5 parámetros de negocio con la estudiante.
+- [x] Paso 3 — Tickets, historial de estados y cálculo del SLA
+      Los 5 parámetros de negocio se validaron con la estudiante el 2026-10-16 (abajo).
   - [x] Parámetro 1 — Mezcla tipo × prioridad (validado 2026-10-16): Incidencia 55 % (P1 3 · P2 17 ·
         P3 50 · P4 30), Petición 35 % (P2 15 · P3 55 · P4 30), Tarea 10 % (P2 20 · P3 50 · P4 30).
         ≈ 413 P1 en 2 años (~1 cada 2 días); 90 % de los tickets computan en facturación.
@@ -162,8 +162,19 @@
         calendario. La causa de un incumplimiento está en trabajo y colas, no en la espera del cliente.
   - [x] Checkpoint de la estudiante (14:07): resultados idénticos (25.300 tickets, Gold 94,3 %,
         agosto 32,3 %, balance −133.003 / −154.034 €) → reproducible en su ejecución.
-  - [ ] Commit del Paso 3.
-- [ ] Paso 4 — Carga a PostgreSQL con upsert (`load_to_postgres.py`)
+  - [x] Commit `827d23a` subido (13 archivos; fact_*.csv y .env fuera, verificado con git status).
+- [ ] Paso 4 — Carga a PostgreSQL con upsert (`load_to_postgres.py`)  ← ACÁ VOY
+  - [x] `01_etl/load_to_postgres.py`: esquema `raw` (zona de aterrizaje; el modelo va en DB_SCHEMA en
+        la Fase 2), 12 tablas con tipos y PK, COPY a tabla temporal + INSERT … ON CONFLICT DO UPDATE
+        (solo si algo cambió), todo en una transacción (rollback si falla). Avisa de filas que ya no
+        están en el CSV (no las borra). 167.940 filas.
+  - [x] Pruebas: 1ª corrida = todo nuevo; 2ª = todo "sin cambios" (no duplica); tras cambiar a mano
+        TCK-000636 y borrar TAR-P4 en la base → 1 actualizada + 1 nueva, base restaurada.
+  - [x] Pregunta de control (¿upsert vs borrar y recargar?): bien en lo principal ("mientras se
+        borra, quien consulte no ve datos"). Matiz: dentro de una transacción también se evita;
+        añadido: carga incremental, no pierde historia, no rompe vistas dependientes, log de cambios.
+  - [x] Checkpoint de la estudiante: 2ª corrida con todas las tablas "sin cambios" → upsert idempotente.
+  - [ ] Commit del Paso 4.
 - [ ] Paso 5 — Verificación de la carga (`verificar_carga.py`)
 
 - [x] Proyecto movido fuera de OneDrive a `C:\Proyectos\servicedesk-sla-analytics-spain`
