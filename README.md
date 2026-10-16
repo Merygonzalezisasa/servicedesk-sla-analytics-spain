@@ -3,7 +3,7 @@
 > 🚧 **En construcción.** Fase actual: 1 (ETL). Este README se completa en la Fase 5.
 
 Análisis end-to-end del **cumplimiento de SLA** de un service desk B2B en España: cuánta facturación
-se pierde y se gana por el bonus/malus de los contratos, y qué lo explica (carga de trabajo,
+se pierde y se gana por el bonus/penalización de los contratos, y qué lo explica (carga de trabajo,
 escalados, vacaciones de verano, festivos y calor).
 
 **Stack:** Python · PostgreSQL · Power BI · Jupyter

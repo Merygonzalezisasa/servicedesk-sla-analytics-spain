@@ -89,47 +89,76 @@ Abierto → En curso ⇄ Esperando al cliente → Resuelto → Cerrado
 | Desarrollo | Bugs que requieren cambio de código |
 | Seguridad | Accesos, vulnerabilidades, incidentes de seguridad |
 
-### 0.3 Clientes y contratos (decidido: niveles + bonus/malus sobre la facturación)
+### 0.3 Clientes y contratos (decidido: niveles + bonus/penalización sobre la facturación)
 
-Los clientes son **empresas** con un contrato de soporte y una **cuota mensual**. Cada mes se mide el
-cumplimiento del SLA de resolución del cliente y, según el tramo en que caiga, la factura de ese mes
-**se descuenta (malus)** o **se bonifica (bonus)** en un porcentaje de la cuota.
+Los clientes son **empresas** con un contrato de soporte y una **cuota anual**, que se factura **por
+sprint** (§0.4). En cada sprint se mide el cumplimiento del SLA de resolución del cliente y, según el
+tramo en que caiga, se calcula un **bonus** o una **penalización** en un porcentaje de la cuota de ese
+sprint. Los importes se **acumulan y se liquidan al cierre del año** (decidido el 2026-10-16).
 
-| Nivel | Nº clientes | Cuota mensual | Objetivo contractual |
+- `cuota_anual_eur` = cuota mensual de referencia × 12 (los rangos de la tabla son mensuales para que
+  se lean fácil).
+- `cuota_sprint_eur` = cuota anual ÷ nº de sprints de ese año (18 en 2024, 17 en 2025), así el cliente
+  paga lo mismo al año. Un Gold de 30.000 €/mes paga 360.000 €/año: 20.000 € por sprint en 2024 y
+  21.176,47 € en 2025. Los clientes dados de alta durante el año pagan los sprints desde su alta.
+
+| Nivel | Nº clientes | Cuota mensual de referencia | Objetivo contractual |
 |---|---|---|---|
 | **Gold** | 8 | 25.000–40.000 € | ≥ 95 % |
 | **Silver** | 14 | 8.000–20.000 € | ≥ 90 % |
 | **Bronze** | 18 | 2.000–6.000 € | ≥ 85 % |
 
-**Tramos de ajuste sobre la factura mensual** *(propuesta, ajustable antes de la Fase 1)*:
+**Tramos de ajuste sobre la cuota de cada sprint** *(propuesta, ajustable antes de la Fase 1)*:
 
-| Nivel | Bonus | Neutro | Malus leve | Malus medio | Malus máximo |
+| Nivel | Bonus | Neutro | Deficiente leve | Deficiente medio | Deficiente máximo |
 |---|---|---|---|---|---|
 | **Gold** | ≥ 98 % → **+3 %** | 95–98 % → 0 % | 92–95 % → −5 % | 88–92 % → −10 % | < 88 % → **−15 %** |
 | **Silver** | ≥ 95 % → **+2 %** | 90–95 % → 0 % | 85–90 % → −5 % | — | < 85 % → **−10 %** |
-| **Bronze** | ≥ 92 % → **+1 %** | < 92 % → 0 % | — | — | **Sin malus** (decidido) |
+| **Bronze** | ≥ 92 % → **+1 %** | < 92 % → 0 % | — | — | **Sin penalización** (decidido) |
 
-- **Qué cuenta para el % mensual:** solo los tickets **con impacto en la penalización**, es decir,
-  **incidencias y peticiones**, resueltos en el mes y no cancelados. Las tareas son trabajo interno:
+- **Qué cuenta para el % del sprint:** solo los tickets **con impacto en la penalización**, es decir,
+  **incidencias y peticiones**, no cancelados, cuyo resultado se conoce en ese sprint (regla de las
+  dos fechas, §0.4). Las tareas son trabajo interno:
   se mide su cumplimiento, pero no entran en la facturación.
-- **Cálculo del % mensual: sin ponderar** (decidido; así funciona en la empresa del estudiante).
+- **Cálculo del % del sprint: sin ponderar** (decidido; así funciona en la empresa del estudiante).
   `% = tickets computables cumplidos ÷ tickets computables`. Un P1 pesa lo mismo que un P4.
   Alternativas vistas en el mercado (documentadas para la entrevista): un indicador por prioridad con
   objetivo y descuento propios que se suman (habitual en pliegos públicos), o un % ponderado por
   prioridad (menos frecuente).
-- **Punto ciego que el análisis debe mostrar:** al no ponderar, un mes puede salir "neutro" aunque
-  se hayan incumplido casi todos los P1. El análisis cuantificará cuántos meses × cliente ocurre esto
-  y cuánto malus habría supuesto con un indicador por prioridad → recomendación de renegociación.
+- **Punto ciego que el análisis debe mostrar:** al no ponderar, un sprint puede salir "neutro" aunque
+  se hayan incumplido casi todos los P1. El análisis cuantificará cuántos sprints × cliente ocurre esto
+  y cuánta penalización habría supuesto con un indicador por prioridad → recomendación de renegociación.
 - **Efecto escalón:** el ajuste no es proporcional. Pasar de 95,1 % a 94,9 % le cuesta a un Gold un 5 %
-  de la cuota (1.250–2.000 €). Por eso los **últimos tickets del mes** cerca del umbral valen mucho
+  de la cuota del sprint (unos 850–1.400 €). Por eso los **últimos tickets del sprint** cerca del umbral valen mucho
   más que la media, y la pregunta 5 (riesgo de incumplimiento) gana peso.
 - **Atributos del cliente:** nombre ficticio, sector (banca, seguros, retail, sanidad, energía,
   administración pública), comunidad autónoma de su sede, nivel de contrato, fecha de alta y cuota.
 - **Geografía:** la comunidad del cliente se usa para el mapa del dashboard. El reloj de SLA usa
   siempre los festivos de Madrid (§0.1).
-- **KPI estrella que habilita:** el **balance neto bonus − malus en €** y el *% de la facturación
-  ajustada*, por cliente, nivel y mes. Para atribuirlo a departamentos, el malus de un mes se reparte
-  entre los tickets incumplidos de ese cliente y mes.
+- **KPI estrella que habilita:** el **balance neto bonus − penalización en €** y el *% de la facturación
+  ajustada*, por cliente, nivel, sprint y año (liquidación). Para atribuirlo a departamentos, la
+  penalización de un sprint se reparte entre los tickets incumplidos de ese cliente y sprint.
+
+### 0.4 Medición por sprint (decidido el 2026-10-16)
+
+El cumplimiento del SLA **no se mide por mes, sino por sprint** (como en la empresa de la estudiante).
+*Esto sustituye al "mes" de §0.3 en todo lo que sea medición; la liquidación está en la tabla de abajo.*
+
+| Regla | Decisión |
+|---|---|
+| **Duración** | 3 semanas: de lunes a viernes de la 3ª semana. Sábados y domingos no cuentan |
+| **Encadenado** | Seguidos desde el lunes 2024-01-01: 2024-01 = 01-01 → 19-01, 2024-02 = 22-01 → 09-02… |
+| **Nombre** | `AAAA-NN` por el año en que **empieza**. El último de un año puede acabar en enero del siguiente (2024-18 = 23-12-24 → 10-01-25) y el siguiente es el 01 del año nuevo (2025-01 = 13-01-25). El ritmo de 3 semanas no se interrumpe |
+| **Fin de semana entre sprints** | Cuenta para el **sprint siguiente** (se trabaja a partir del lunes) |
+| **Período** | Se amplía hasta el **2026-01-02** para que el último sprint (2025-17) esté completo → 35 sprints (18 de 2024 + 17 de 2025), de 12 a 15 días laborables |
+| **En qué sprint cuenta un ticket** | Se usan **las dos fechas**. Cada ticket se mide **una vez**, en el sprint en que se conoce su resultado: ✅ si se resuelve a tiempo → sprint de **resolución**; ❌ si vence el SLA → sprint del **vencimiento**, esté cerrado o no; abierto y dentro de plazo al cierre del sprint → **arrastre** al siguiente |
+| **Columnas** | `sprint_apertura` (entrada de trabajo, carga) y `sprint_medicion` (cumplimiento y factura), más el arrastre por sprint como indicador de saturación |
+| **Cuota** | Por sprint, de modo que **el cliente paga lo mismo al año** que con la cuota mensual de §0.3 |
+| **Liquidación del bonus / penalización** | El tramo se calcula **en cada sprint** y los importes se **suman y se liquidan al cierre del año**. El sprint cuenta en el año de su nombre (2024-18 se liquida en 2024 aunque acabe en enero de 2025) |
+
+**Ejemplo de la regla de las dos fechas:** Incidencia P3 (18 h laborables) abierta el jueves 18-01-24
+a las 10:00 (sprint 2024-01) → vence el lunes 22-01 a las 10:00 (sprint 2024-02). Resuelta el viernes
+19 → ✅ en 2024-01. Resuelta el martes 23 → ❌ en 2024-02. Abierta todavía el 09-02 → ❌ en 2024-02.
 
 **Prueba de la API de festivos (Nager.Date, 2025/ES)**, hecha el 2026-10-15 desde la red corporativa:
 responde un array con 32 festivos, **12 aplicables a Madrid** (nacionales + `ES-MD`).
@@ -179,7 +208,7 @@ Dos fuentes reales, ambas de **Nivel 1 (globales)**, aprobadas el 2026-10-15 des
 | Variables | temperature_2m_max, temperature_2m_min, precipitation_sum | fecha, nombre, ámbito (`counties`: nacional o `ES-MD`) |
 | Punto / ámbito | Madrid (lat 40.4168, lon −3.7038) | España, filtrado a nacional + Comunidad de Madrid |
 | Frecuencia | **Diaria** | Por fecha |
-| Período | 2024-01-01 → 2025-12-31 | 2024 y 2025 |
+| Período | 2024-01-01 → 2026-01-02 | 2024, 2025 y 2026 (1–2 de enero) |
 | Uso en el análisis | `dim_clima_madrid` → correlación 2 (calor) | `dim_tiempo` → reloj de SLA + correlación 1 (post-festivo) |
 | ¿Key? | No | No |
 
@@ -220,7 +249,7 @@ Formatos de fecha: ambas en `YYYY-MM-DD`. No hay que normalizar nada en la Fase 
 | Campo | Valor |
 |---|---|
 | Origen | **Sintética** (Faker + NumPy, semilla fija), con las correlaciones de §2.3 |
-| Período | **2024-01-01 → 2025-12-31** (2 años completos, permite YoY) |
+| Período | **2024-01-01 → 2026-01-02** (2 años completos, permite YoY; se alarga 2 días para cerrar el sprint 2025-17, §0.4) |
 | Volumen de hechos | ~**25.000 tickets** (~50 por día laborable) + su historial de estados |
 | Volumen de entidades | ~**40 clientes** (8 Gold · 14 Silver · 18 Bronze) |
 | Agentes | ~**35 agentes** repartidos en los 5 departamentos, con calendario de vacaciones propio |
@@ -250,15 +279,16 @@ separarlas comparando **días calurosos y no calurosos dentro de julio y agosto*
 
 | Rol | Tabla | Columnas clave |
 |---|---|---|
-| HECHO | `fact_ticket` | ticket_id, cliente_id, agente_id, sla_id, departamento_id, fecha_creacion, fecha_primera_respuesta, fecha_resolucion, fecha_cierre, estado_actual, n_reasignaciones, min_respuesta_sla, min_resolucion_sla, cumple_respuesta, cumple_resolucion, computa_facturacion |
-| HECHO (mensual) | `fact_facturacion_mensual` | cliente_id, mes, cuota_eur, n_tickets_computables, n_cumplidos, pct_cumplimiento, tramo, pct_ajuste, ajuste_eur, importe_facturado_eur — **otro grano: cliente × mes** |
+| HECHO | `fact_ticket` | ticket_id, cliente_id, sla_id, departamento_id (el que resuelve o donde está al corte), agente_id, fecha_creacion, fecha_primera_respuesta, fecha_resolucion, fecha_cierre, fecha_cancelacion, fecha_incumplimiento, estado_actual, estado_sla (cumplido / incumplido / en curso / cancelado), n_reasignaciones, min_respuesta_sla, min_resolucion_sla, min_pausa, cumple_respuesta, cumple_resolucion, computa_facturacion, sprint_apertura, sprint_medicion |
+| HECHO (sprint) | `fact_facturacion_sprint` | cliente_id, sprint_id, cuota_sprint_eur, n_tickets_computables, n_cumplidos, pct_cumplimiento, tramo, pct_ajuste, ajuste_eur — **otro grano: cliente × sprint**. La liquidación anual (cliente × año = suma de ajuste_eur) sale de una vista |
 | HECHO (detalle) | `fact_ticket_estado` | ticket_id, secuencia, estado, departamento_id, agente_id, inicio, fin, pausa_reloj — **el historial que permite calcular las pausas** |
-| QUIÉN (cliente) | `dim_cliente` | cliente_id, nombre, sector, comunidad_autonoma, nivel_contrato, cuota_mensual_eur, fecha_alta |
+| QUIÉN (cliente) | `dim_cliente` | cliente_id, nombre, sector, comunidad_autonoma, nivel_contrato, cuota_anual_eur, fecha_alta |
 | QUIÉN (resolutor) | `dim_agente` | agente_id, nombre, departamento_id, nivel (N1/N2/N3), fecha_alta |
 | — | `agente_ausencia` | agente_id, fecha_inicio, fecha_fin, motivo — **alimenta la correlación 6** |
 | QUÉ | `dim_sla` | sla_id, tipo, prioridad, objetivo_respuesta_min, objetivo_resolucion_min, reloj (24x7 / laboral) |
-| — | `dim_tramo_ajuste` | nivel_contrato, pct_desde, pct_hasta, tipo (bonus/neutro/malus), pct_ajuste |
+| — | `dim_tramo_ajuste` | nivel_contrato, pct_desde, pct_hasta, tipo (bonus/neutro/deficiente), pct_ajuste |
 | DÓNDE / QUIÉN | `dim_departamento` | departamento_id, nombre, rol |
+| CUÁNDO | `dim_sprint` | sprint_id (AAAA-NN), anio_sprint, numero, fecha_inicio, fecha_fin, dias_laborables, es_completo |
 | CUÁNDO | `dim_tiempo` | fecha, año, trimestre, mes, dia_semana, es_laborable, es_festivo_madrid, nombre_festivo, es_post_festivo, es_puente |
 | CONTEXTO | `dim_clima_madrid` | fecha, temp_max, temp_min, precipitacion, es_dia_caluroso (Tmax > 35 °C) |
 
@@ -268,12 +298,12 @@ separarlas comparando **días calurosos y no calurosos dentro de julio y agosto*
 
 | # | Pregunta | Área | Módulo de análisis | Acción esperada |
 |---|---|---|---|---|
-| 1 | ¿Qué % de tickets cumple el SLA por tipo, prioridad y nivel de contrato, y qué clientes caen por debajo de su objetivo o quedan a menos de 1 punto del siguiente tramo de malus? | Service Delivery | Calidad (#8) + descriptivo | Plan de choque con los clientes en riesgo **antes** del cierre de mes |
-| 2 | ¿Cuál es el balance neto bonus − malus en €, y qué departamentos y tipos de ticket concentran el 80 % del malus? | Finanzas | Pareto (#1) | Reforzar o formar donde más facturación se pierde |
+| 1 | ¿Qué % de tickets cumple el SLA por tipo, prioridad y nivel de contrato, y qué clientes caen por debajo de su objetivo o quedan a menos de 1 punto del siguiente tramo deficiente? | Service Delivery | Calidad (#8) + descriptivo | Plan de choque con los clientes en riesgo **antes** del cierre de mes |
+| 2 | ¿Cuál es el balance neto bonus − penalización en €, y qué departamentos y tipos de ticket concentran el 80 % de la penalización? | Finanzas | Pareto (#1) | Reforzar o formar donde más facturación se pierde |
 | 3 | ¿Los festivos y el calor cambian el volumen de tickets y el cumplimiento? | Planificación | Correlación con contexto (#6) | Turnos reforzados tras los puentes; guardia de Infraestructura en olas de calor |
 | 4 | ¿Cuántos tickets entrarán el próximo trimestre y cuántos agentes harán falta en agosto? | Workforce management | Forecast (#5) | Planificar las vacaciones sin caer de tramo |
-| 5 | ¿Qué tickets abiertos tienen más probabilidad de incumplir y cuánto malus evitaría resolverlos a tiempo? | Coordinación del Service Desk | Riesgo (#7, regresión logística) | Escalado preventivo, priorizando los tickets que deciden el tramo del mes |
-| 6 | ¿Qué perfiles de cliente hay según su patrón de tickets (volumen, % P1, escalados, malus)? | Account management | Clustering (#2) | Renegociar contratos cuyo nivel no se ajusta al uso real |
+| 5 | ¿Qué tickets abiertos tienen más probabilidad de incumplir y cuánta penalización evitaría resolverlos a tiempo? | Coordinación del Service Desk | Riesgo (#7, regresión logística) | Escalado preventivo, priorizando los tickets que deciden el tramo del sprint |
+| 6 | ¿Qué perfiles de cliente hay según su patrón de tickets (volumen, % P1, escalados, penalización)? | Account management | Clustering (#2) | Renegociar contratos cuyo nivel no se ajusta al uso real |
 
 ## 5. Módulos de análisis elegidos
 - [x] Calidad y outliers *(obligatorio)*
@@ -313,15 +343,15 @@ separarlas comparando **días calurosos y no calurosos dentro de julio y agosto*
    dims:   dim_tiempo · dim_clima_madrid · dim_cliente · dim_agente
            agente_ausencia · dim_departamento · dim_sla · dim_tramo_ajuste
    hechos: fact_ticket · fact_ticket_estado
-   SP:     sp_calcular_facturacion_mensual(mes) → fact_facturacion_mensual
-   vistas: v_ticket_enriquecido · v_kpis_diarios · v_cumplimiento_mensual
-           v_pareto_malus
+   SP:     sp_calcular_facturacion_sprint(sprint) → fact_facturacion_sprint
+   vistas: v_ticket_enriquecido · v_kpis_diarios · v_cumplimiento_sprint · v_liquidacion_anual
+           v_pareto_penalizacion
                                      │
                   ┌──────────────────┴──────────────────┐
                   ▼                                     ▼
  CAPA 3 — POWER BI (el "qué")            CAPA 4 — PYTHON (el "por qué")
-   P1 · ¿Cómo vamos? cumplimiento,          calidad · Pareto del malus
-        bonus/malus €, clientes en riesgo   correlación calor/festivos
+   P1 · ¿Cómo vamos? cumplimiento,          calidad · Pareto de la penalización
+        balance €, clientes en riesgo       correlación calor/festivos
    P2 · ¿Por qué? calor, festivos,          forecast de volumen y agosto
         escalados, punto ciego de P1        riesgo de incumplir · clusters
                   └──────────────────┬──────────────────┘
@@ -336,8 +366,8 @@ separarlas comparando **días calurosos y no calurosos dentro de julio y agosto*
 2. **Los minutos de SLA se calculan en Python** (ETL), recorriendo el historial de estados con el
    calendario laboral. La aritmética de horas laborables con pausas es mucho más clara en Python que
    en SQL.
-3. **La facturación mensual se calcula en SQL** con un procedimiento almacenado: es la regla de
-   negocio que se recalcula cada mes, la prueba de "sé automatizar".
+3. **La facturación por sprint se calcula en SQL** con un procedimiento almacenado: es la regla de
+   negocio que se recalcula cada sprint, la prueba de "sé automatizar".
 
 ## 7. Stack y entorno
 
@@ -361,7 +391,7 @@ separarlas comparando **días calurosos y no calurosos dentro de julio y agosto*
 **Dentro:**
 - Ciclo de vida completo del ticket (estados, reasignaciones y pausas) y cálculo del SLA de respuesta
   y resolución con el calendario laboral de Madrid.
-- Bonus/malus mensual por cliente según los tramos de su contrato.
+- Bonus/penalización por sprint y cliente según los tramos de su contrato, liquidado al cierre del año.
 - Cruce con clima y festivos reales; las 6 preguntas de §4.
 - Pipeline reproducible: ETL → PostgreSQL → Power BI + notebook → documentación.
 

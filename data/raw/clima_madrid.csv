@@ -730,3 +730,5 @@ fecha,temp_max,temp_min,precipitacion_mm,es_dia_caluroso
 2025-12-29,10.7,4.0,0.0,False
 2025-12-30,10.0,0.4,0.0,False
 2025-12-31,8.0,-0.9,0.0,False
+2026-01-01,3.2,-1.6,0.1,False
+2026-01-02,9.8,3.0,0.7,False

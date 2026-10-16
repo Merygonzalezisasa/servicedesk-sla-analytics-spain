@@ -1,7 +1,7 @@
 # Progreso — Brújula Soporte IT · Service Desk SLA Analytics
 
 ## Estado actual
-**Fase:** 1 (ETL) · **Paso:** 1 de 5 · **Última sesión:** 2026-10-15
+**Fase:** 1 (ETL) · **Paso:** 3 de 5 · **Última sesión:** 2026-10-15
 
 ## Bitácora
 ### Fase 0 — Decidir ✅ (2026-10-15)
@@ -26,8 +26,8 @@
       Pregunta de control (muestra pequeña): respondida a medias; matiz explicado (sin potencia
       estadística, un día atípico decide el resultado).
 - [x] Paso 4 — 6 preguntas de negocio y 6 módulos (FICHA §4 y §5).
-      Bonus/malus mensual en % de la factura por tramos → `fact_facturacion_mensual`
-      (grano cliente × mes) y `dim_tramo_ajuste`. Bronze sin malus. % mensual sin ponderar
+      Bonus/penalización mensual en % de la factura por tramos → `fact_facturacion_mensual`
+      (grano cliente × mes) y `dim_tramo_ajuste`. Bronze sin penalización. % mensual sin ponderar
       (como en la empresa de la estudiante); el punto ciego de los P1 pasa a ser un análisis.
 - [x] Paso 5 — Arquitectura (FICHA §6) y stack (§7). Pregunta de control (extract antes que
       generate): bien el reloj de SLA; se completó la parte de las correlaciones.
@@ -86,8 +86,8 @@
         lluvia es intermitente: 466 de 731 días sin lluvia).
   - [x] Commit `0332790` subido. (Incidencia: `git commit` sin mensaje abrió Vim → `:q!`;
         editor de git cambiado a VS Code con `core.editor "code --wait"`.)
-- [ ] Paso 2 — Generador: dimensiones (calendario, departamentos, agentes, vacaciones, clientes,
-      SLA, tramos)  ← ACÁ VOY
+- [x] Paso 2 — Generador: dimensiones (calendario, departamentos, agentes, vacaciones, clientes,
+      SLA, tramos)
   - [x] `01_etl/generate_tickets_data.py` (SEED=42) → 7 CSV en data/raw: dim_tiempo (731; 500
         laborables, 19 post-festivo, 5 puentes), dim_departamento (5), dim_agente (35),
         agente_ausencia (405: 396 vacaciones + 9 bajas), dim_cliente (40; 7 altas en el período),
@@ -97,8 +97,72 @@
   - [x] Reproducible: dos corridas → mismos hashes de los 7 CSV.
   - [x] Checkpoint de la estudiante (14:32): mismo resultado, agosto 32,3 % → reproducible en su
         ejecución.
-  - [ ] Pregunta de control (¿qué pasa sin SEED?) + commit.
-- [ ] Paso 3 — Generador sintético: tickets, historial de estados y cálculo de SLA
+  - [x] Pregunta de control (¿qué pasa sin SEED?): bien ("los datos serían aleatorios"); se añadió
+        la consecuencia: los números del README no coincidirían con lo que obtiene quien lo clone.
+  - [x] Commit `9126b28` subido.
+- [ ] Paso 3 — Tickets, historial de estados y cálculo del SLA  ← ACÁ VOY
+      Diseño propuesto en el chat; pendiente de validar 5 parámetros de negocio con la estudiante.
+  - [x] Parámetro 1 — Mezcla tipo × prioridad (validado 2026-10-16): Incidencia 55 % (P1 3 · P2 17 ·
+        P3 50 · P4 30), Petición 35 % (P2 15 · P3 55 · P4 30), Tarea 10 % (P2 20 · P3 50 · P4 30).
+        ≈ 413 P1 en 2 años (~1 cada 2 días); 90 % de los tickets computan en facturación.
+  - [x] Parámetro 2 — Reparto del volumen entre clientes (validado): proporcional a n_usuarios
+        (Gold ~77 tickets/mes, Silver ~23, Bronze ~6), sin mínimo; los clientes dados de alta en el
+        período solo abren tickets desde su fecha_alta. La inestabilidad del % con pocos tickets
+        (1 fallo = Bronze pierde el bonus) se deja a propósito como hallazgo.
+  - [x] Cambio de nombre: en `dim_tramo_ajuste.tipo`, "malus" pasa a ser **"deficiente"**
+        (bonus / neutro / deficiente). Regenerado: solo cambia ese CSV (los otros 8, mismo hash).
+        Vocabulario unificado en todo el proyecto (FICHA, README, código): "malus" → **penalización**
+        para el importe en € (p. ej. `v_pareto_penalizacion`) y **deficiente** para el tramo.
+  - [x] **Medición por sprint** en lugar de por mes (FICHA §0.4): sprints de 3 semanas (lun → vie),
+        `AAAA-NN` por año de inicio, fin de semana al sprint siguiente, regla de las dos fechas
+        (✅ en el sprint de resolución, ❌ en el del vencimiento, abiertos en plazo = arrastre),
+        cuota por sprint equivalente a la anual.
+  - [x] Período ampliado a **2026-01-02** (FECHA_FIN en .env y .env.example) para cerrar el sprint
+        2025-17. Festivos (aviso solo en años completos) y clima re-extraídos (733 días); vacaciones
+        solo en años completos. Nueva `dim_sprint.csv` (35 sprints: 18 + 17, 12–15 laborables) y
+        columna `sprint_id` en dim_tiempo. Reproducible (dos corridas, mismos hashes).
+        Fallo detectado y corregido: las altas de agentes se sorteaban hasta junio de FECHA_FIN.year
+        (ahora 2026) → `ULTIMO_ANIO_COMPLETO`. Con el arreglo, dim_agente y agente_ausencia son
+        idénticos a los del commit 9126b28 (405 ausencias, agosto 32,3 %): el checkpoint sigue valiendo.
+  - [x] Liquidación (opción A): tramo calculado en cada sprint, importes sumados y liquidados al
+        cierre del año (el sprint cuenta en el año de su nombre). `dim_cliente.cuota_anual_eur`
+        (= mensual de referencia × 12) sustituye a cuota_mensual_eur; cuota_sprint = anual ÷ nº de
+        sprints del año (18 / 17). Modelo: `fact_facturacion_sprint` (cliente × sprint),
+        `sp_calcular_facturacion_sprint`, vistas `v_cumplimiento_sprint` y `v_liquidacion_anual`.
+  - [x] Parámetro 3 — Calibración del cumplimiento de resolución por sprint (validado): Gold ~94 %,
+        Silver ~90 %, Bronze ~86 %; 1ª respuesta ~95 %. No se fija a mano: sale de las reglas
+        (escalados, verano, festivos, saturación, prioridad Gold) ajustadas hasta acercarse.
+        Balance anual esperado negativo, concentrado en Gold y Silver.
+  - [x] Parámetro 4 — Escalados (validado): todo entra por N1; 65 % se resuelve en N1, 25 % 1 escalado,
+        10 % 2+. Primer destino — Incidencia: N2 50 · Infra 35 · Seguridad 15; Petición: Seguridad 60 ·
+        Infra 40; Tarea: Infra 50 · Desarrollo 50. Desarrollo casi siempre como 2º salto desde N2.
+        Cada reasignación = 1–4 h lab. de cola con el reloj corriendo (→ ~3× incumplimiento).
+        El ticket se atribuye al departamento que resuelve; el historial guarda el tiempo en cada uno.
+        Calor > 35 °C: más P1/P2 de Infraestructura (entran por N1 y se escalan a Infra).
+  - [x] Parámetro 5 — Pausas, cancelados, cierre y corte (validado): 30 % pasa por "Esperando al
+        cliente" (mediana ~4 h lab., cola larga), pausa solo el reloj de resolución (no la 1ª
+        respuesta); 3 % cancelados (fuera del % y de la factura); Resuelto → Cerrado automático a los
+        3 días laborables, sin reaperturas; corte 2026-01-02 18:00: vencidos = ❌ en 2025-17,
+        en plazo = "en curso" (backlog, fuera de la factura).
+  - [x] `01_etl/reloj_sla.py`: reloj 24x7 y laboral (posición en minutos de reloj); autotest con el
+        ejemplo de control de §0.1 (1 h 30 min) OK. No corrige el cambio de hora (declarado).
+  - [x] Generador de tickets en `generate_tickets_data.py` → `fact_ticket.csv` (25.300) y
+        `fact_ticket_estado.csv` (140.602). Plan por ticket en minutos de reloj → tiempo real → corte.
+        Calibrado (2026-10-16): resolución Gold 94,3 % · Silver 90,2 % · Bronze 86,1 %; 1ª respuesta
+        94,9 %; escalados x3,4; Desarrollo el peor (67 %); jul-ago 84,8 % vs resto 93,6 %; post-festivo
+        68 vs 50 tickets/día; Infra P1/P2 en días > 35 °C 0,82 vs 0,43/día; 29 % con pausa; 712
+        cancelados; backlog al corte 143 (124 en plazo + 19 vencidos). Tramos cliente × sprint: Gold
+        43 % deficiente; balance −133.003 € (2024) y −154.034 € (2025).
+        Ajustes de calibración: tope a la saturación (en equipos de 3–5 agentes se disparaba ×12) y
+        solo el departamento que resuelve hace el trabajo completo (triaje en N1, diagnóstico en los
+        intermedios). 11 comprobaciones de coherencia OK. Reproducible (mismos hashes en 2 corridas).
+  - [x] Pregunta de control (TCK-000636 sin la pausa de 3 h 39 min, ¿cumple?): a medias. Bien el
+        sprint de apertura (2024-01) vs medición (2024-02). Mal: dijo que sí cumpliría → explicado que
+        la pausa no consume SLA: seguiría en 1.082 min (> 1.080), solo se resolvería antes en el
+        calendario. La causa de un incumplimiento está en trabajo y colas, no en la espera del cliente.
+  - [x] Checkpoint de la estudiante (14:07): resultados idénticos (25.300 tickets, Gold 94,3 %,
+        agosto 32,3 %, balance −133.003 / −154.034 €) → reproducible en su ejecución.
+  - [ ] Commit del Paso 3.
 - [ ] Paso 4 — Carga a PostgreSQL con upsert (`load_to_postgres.py`)
 - [ ] Paso 5 — Verificación de la carga (`verificar_carga.py`)
 

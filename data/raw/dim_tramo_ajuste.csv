@@ -1,12 +1,12 @@
 tramo_id,nivel_contrato,pct_desde,pct_hasta,tipo,pct_ajuste
 1,Gold,98.0,100.01,bonus,3.0
 2,Gold,95.0,98.0,neutro,0.0
-3,Gold,92.0,95.0,malus,-5.0
-4,Gold,88.0,92.0,malus,-10.0
-5,Gold,0.0,88.0,malus,-15.0
+3,Gold,92.0,95.0,deficiente,-5.0
+4,Gold,88.0,92.0,deficiente,-10.0
+5,Gold,0.0,88.0,deficiente,-15.0
 6,Silver,95.0,100.01,bonus,2.0
 7,Silver,90.0,95.0,neutro,0.0
-8,Silver,85.0,90.0,malus,-5.0
-9,Silver,0.0,85.0,malus,-10.0
+8,Silver,85.0,90.0,deficiente,-5.0
+9,Silver,0.0,85.0,deficiente,-10.0
 10,Bronze,92.0,100.01,bonus,1.0
 11,Bronze,0.0,92.0,neutro,0.0

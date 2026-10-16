@@ -53,7 +53,9 @@ def validar(df: pd.DataFrame, inicio: date, fin: date) -> None:
     fuera = df[(df["fecha"] < pd.Timestamp(inicio)) | (df["fecha"] > pd.Timestamp(fin))]
     assert fuera.empty, f"Festivos fuera del período: {fuera['fecha'].tolist()}"
     for anio, n in df.groupby(df["fecha"].dt.year).size().items():
-        if n not in FESTIVOS_ESPERADOS:
+        # Un año que el período solo cubre en parte (p. ej. 2026, del 1 al 2 de enero) no se revisa.
+        anio_completo = inicio <= date(anio, 1, 1) and date(anio, 12, 31) <= fin
+        if anio_completo and n not in FESTIVOS_ESPERADOS:
             log.warning(f"{anio}: {n} festivos (lo esperado es 14). Revisar API y correcciones")
 
 

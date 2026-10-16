@@ -29,3 +29,4 @@ fecha,nombre,ambito,fuente,es_fin_semana
 2025-12-06,Día de la Constitución,nacional,Nager.Date,True
 2025-12-08,Inmaculada Concepción,nacional,Nager.Date,False
 2025-12-25,Navidad,nacional,Nager.Date,False
+2026-01-01,Año Nuevo,nacional,Nager.Date,False
