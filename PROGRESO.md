@@ -1,7 +1,7 @@
 # Progreso — Brújula Soporte IT · Service Desk SLA Analytics
 
 ## Estado actual
-**Fase:** 1 (ETL) · **Paso:** 4 de 5 · **Última sesión:** 2026-10-16
+**Fase:** 2 (SQL) · **Paso:** 1 de 4 · **Última sesión:** 2026-10-16
 
 ## Bitácora
 ### Fase 0 — Decidir ✅ (2026-10-15)
@@ -70,7 +70,7 @@
   - [x] Commit `fe84a24` + `git push -u origin main`. Verificado: 14 archivos en GitHub, sin `.env`.
   - Pregunta de control (¿por qué `git status` antes del commit?): no respondida → explicada.
 
-### Fase 1 — ETL 🚧
+### Fase 1 — ETL ✅ (2026-10-16)
 - [x] Paso 1 — Extractores de las APIs
   - [x] `01_etl/comun.py`: rutas, .env, logging (logs/ + consola), GET con timeout y reintentos
         con espera creciente (solo fallos transitorios: red, timeout, 429, 5xx).
@@ -163,7 +163,7 @@
   - [x] Checkpoint de la estudiante (14:07): resultados idénticos (25.300 tickets, Gold 94,3 %,
         agosto 32,3 %, balance −133.003 / −154.034 €) → reproducible en su ejecución.
   - [x] Commit `827d23a` subido (13 archivos; fact_*.csv y .env fuera, verificado con git status).
-- [ ] Paso 4 — Carga a PostgreSQL con upsert (`load_to_postgres.py`)  ← ACÁ VOY
+- [x] Paso 4 — Carga a PostgreSQL con upsert (`load_to_postgres.py`)
   - [x] `01_etl/load_to_postgres.py`: esquema `raw` (zona de aterrizaje; el modelo va en DB_SCHEMA en
         la Fase 2), 12 tablas con tipos y PK, COPY a tabla temporal + INSERT … ON CONFLICT DO UPDATE
         (solo si algo cambió), todo en una transacción (rollback si falla). Avisa de filas que ya no
@@ -174,8 +174,20 @@
         borra, quien consulte no ve datos"). Matiz: dentro de una transacción también se evita;
         añadido: carga incremental, no pierde historia, no rompe vistas dependientes, log de cambios.
   - [x] Checkpoint de la estudiante: 2ª corrida con todas las tablas "sin cambios" → upsert idempotente.
-  - [ ] Commit del Paso 4.
-- [ ] Paso 5 — Verificación de la carga (`verificar_carga.py`)
+  - [x] Commit `676bb71` subido.
+- [x] Paso 5 — Verificación de la carga (`verificar_carga.py`)
+  - [x] `01_etl/verificar_carga.py`: 12 comprobaciones de integridad (claves ajenas, nulos, calendario
+        ↔ sprints ↔ clima ↔ festivos) + 8 de reglas de negocio (catálogo de estados, P1 solo
+        incidencias, orden de fechas, corte, historial encadenado, cumplido ↔ minutos, regla de las
+        dos fechas, qué computa en la factura) + cifras de control SQL (base) vs pandas (CSV):
+        filas, cumplimiento por nivel, estados del SLA, suma de minutos. Sale con código 1 si falla.
+  - [x] Todo en verde. Prueba de sabotaje (TCK-000636 con cliente CLI-999 y "cumplido"): detectado
+        por 3 vías; el upsert lo repara (1 actualizada) y vuelve a verde.
+  - [x] Pregunta de control (¿para qué el sabotaje?): al principio no la entendió → reformulada con la
+        alarma de humo. Respuesta bien: "para confirmar que el verificador está encendido". Matiz:
+        y que cada comprobación detecta lo que dice detectar (probar que una prueba puede fallar).
+  - [x] Checkpoint de la estudiante: termina con "CARGA VERIFICADA".
+  - [ ] Commit de cierre de la Fase 1.
 
 - [x] Proyecto movido fuera de OneDrive a `C:\Proyectos\servicedesk-sla-analytics-spain`
       (3 archivos, hash verificado). La estudiante tiene cuenta de GitHub.
@@ -184,6 +196,28 @@
 
 - [x] Pregunta de control del Paso 2 (¿por qué la contraseña va en `.env`?): bien respondida.
       Matiz añadido: el historial de git la conserva aunque se borre después.
+
+### Fase 2 — SQL 🚧
+Plan (Parte 5 de la plantilla): 4 archivos en 02_sql/, uno por uno; la estudiante los ejecuta en su base.
+Decisión: `raw` = zona de aterrizaje (acepta lo que traen los CSV); `servicedesk` = modelo con FKs y
+CHECKs (la base rechaza lo que no cumple las reglas del negocio).
+- [ ] Paso 1 — `01_create_schema.sql`  ← ACÁ VOY
+  - [x] Esquema estrella `servicedesk`: 9 dimensiones/tablas puente + fact_ticket, fact_ticket_estado y
+        fact_facturacion_sprint (vacía, la llena el SP). PKs, FKs, ~40 CHECKs (P1 solo incidencias,
+        regla de las dos fechas, orden de fechas, tramos con signo correcto…), 15 índices, comentarios.
+        dim_sprint.n_sprints_anio (18 / 17) para la cuota por sprint. Carga desde raw + ANALYZE.
+  - [x] Probado: crea desde cero sin errores ni avisos; 0 filas distintas entre raw y el modelo.
+  - [x] Explicado a petición de la estudiante: restricciones de dim_sprint (UNIQUE, CHECK de +18 días e
+        isodow), COMMENT ON, fact_facturacion_sprint y el SP, índices (simples, compuestos, parcial),
+        orden de carga por FKs, count(*) OVER, COMMIT/ANALYZE. Comentario de dim_agente corregido
+        ("~20 % más rápido" → "tarda ~18 % menos": factores 0,90 vs 1,10).
+  - [x] Pregunta de control (¿fact_ticket antes que dim_cliente?): bien. Matiz: falla siempre (FK)
+        y la transacción deshace todo el script.
+  - [ ] Pendiente: ¿añadir a la FICHA el efecto senior/junior como efecto secundario inyectado?
+  - [ ] Ejecución de la estudiante (+ prueba del UPDATE rechazado) + commit.
+- [ ] Paso 2 — `02_create_views.sql`
+- [ ] Paso 3 — `03_stored_procedures.sql`
+- [ ] Paso 4 — `04_sample_queries.sql`
 
 ## Dudas abiertas
 - Tiempos concretos de la matriz SLA y de los tramos: abiertos a ajuste antes de la Fase 1.
