@@ -24,7 +24,7 @@ SET search_path TO servicedesk;
 SET client_min_messages = warning;  -- sin avisos de "la vista no existe" en la primera ejecución
 
 DROP VIEW IF EXISTS v_ticket_enriquecido, v_kpis_diarios, v_cumplimiento_sprint, v_liquidacion_anual,
-                    v_pareto_penalizacion, v_perfil_cliente CASCADE;
+                    v_pareto_penalizacion, v_perfil_cliente, v_facturacion_sprint CASCADE;
 
 -- ---------------------------------------------------------------------------------------------
 -- 1. v_ticket_enriquecido — un ticket por fila con todo su contexto
@@ -49,6 +49,12 @@ SELECT t.ticket_id,
        round(t.min_resolucion_sla / 60.0, 1)                     AS horas_sla_resolucion,
        round(100.0 * t.min_resolucion_sla / s.objetivo_resolucion_min, 1) AS pct_sla_consumido,
        t.sprint_apertura, t.sprint_medicion,
+       -- día en que se conoce el resultado (regla de las dos fechas): resolución si cumple,
+       -- vencimiento si incumple. Su sprint es sprint_medicion. NULL si está en curso o cancelado.
+       CASE t.estado_sla WHEN 'cumplido'   THEN t.fecha_resolucion::date
+                         WHEN 'incumplido' THEN t.fecha_incumplimiento::date END AS fecha_medicion,
+       -- penalización oficial del cliente-sprint repartida a partes iguales entre sus incumplidos
+       coalesce(pen.penalizacion_atribuida_eur, 0)               AS penalizacion_atribuida_eur,
        -- cuándo y contexto del día de creación
        ti.anio, ti.trimestre, ti.mes, ti.dia_semana, ti.es_laborable,
        ti.es_festivo_madrid, ti.es_post_festivo, ti.es_puente,
@@ -59,7 +65,14 @@ JOIN dim_cliente c      USING (cliente_id)
 JOIN dim_departamento d USING (departamento_id)
 LEFT JOIN dim_agente a  USING (agente_id)
 JOIN dim_tiempo ti      ON ti.fecha = t.fecha_creacion::date
-JOIN dim_clima_madrid cl ON cl.fecha = t.fecha_creacion::date;
+JOIN dim_clima_madrid cl ON cl.fecha = t.fecha_creacion::date
+LEFT JOIN (
+    SELECT t2.ticket_id,
+           -f.ajuste_eur / count(*) OVER (PARTITION BY t2.cliente_id, t2.sprint_medicion) AS penalizacion_atribuida_eur
+    FROM fact_ticket t2
+    JOIN fact_facturacion_sprint f ON f.cliente_id = t2.cliente_id AND f.sprint_id = t2.sprint_medicion
+    WHERE t2.computa_facturacion AND t2.estado_sla = 'incumplido' AND f.tipo_tramo = 'deficiente'
+) pen USING (ticket_id);
 
 COMMENT ON VIEW v_ticket_enriquecido IS 'Un ticket por fila con SLA, cliente, departamento, agente, calendario y clima del día de creación';
 
@@ -211,6 +224,21 @@ FROM grupos;
 COMMENT ON VIEW v_pareto_penalizacion IS 'Pareto de la penalización (€) por departamento que resuelve × tipo de ticket, con % acumulado y clase ABC (A = el 80 %)';
 
 -- ---------------------------------------------------------------------------------------------
+-- 5b. v_facturacion_sprint — la facturación oficial con el margen sobre el tramo inferior
+--     (Power BI: "ingresos en riesgo" = cuota de los cliente-sprints con < 1 punto de margen)
+-- ---------------------------------------------------------------------------------------------
+CREATE VIEW v_facturacion_sprint AS
+SELECT f.cliente_id, f.sprint_id, f.nivel_contrato, f.cuota_sprint_eur,
+       f.n_tickets_computables, f.n_cumplidos, f.pct_cumplimiento,
+       f.tipo_tramo, f.pct_ajuste, f.ajuste_eur,
+       round(f.pct_cumplimiento - tr.pct_desde, 2)                   AS puntos_sobre_tramo_inferior,
+       CASE f.nivel_contrato WHEN 'Gold' THEN 95 WHEN 'Silver' THEN 90 ELSE 85 END AS objetivo_contractual
+FROM fact_facturacion_sprint f
+LEFT JOIN dim_tramo_ajuste tr USING (tramo_id);
+
+COMMENT ON VIEW v_facturacion_sprint IS 'fact_facturacion_sprint + margen sobre el tramo inferior y objetivo contractual (vacía hasta ejecutar el sp del archivo 03)';
+
+-- ---------------------------------------------------------------------------------------------
 -- 6. v_perfil_cliente — patrón de tickets de cada cliente (para el clustering de la Fase 4)
 -- ---------------------------------------------------------------------------------------------
 CREATE VIEW v_perfil_cliente AS
@@ -262,4 +290,5 @@ UNION ALL SELECT 'v_kpis_diarios',        count(*) FROM v_kpis_diarios
 UNION ALL SELECT 'v_cumplimiento_sprint', count(*) FROM v_cumplimiento_sprint
 UNION ALL SELECT 'v_liquidacion_anual',   count(*) FROM v_liquidacion_anual
 UNION ALL SELECT 'v_pareto_penalizacion', count(*) FROM v_pareto_penalizacion
-UNION ALL SELECT 'v_perfil_cliente',      count(*) FROM v_perfil_cliente;
+UNION ALL SELECT 'v_perfil_cliente',      count(*) FROM v_perfil_cliente
+UNION ALL SELECT 'v_facturacion_sprint',  count(*) FROM v_facturacion_sprint;

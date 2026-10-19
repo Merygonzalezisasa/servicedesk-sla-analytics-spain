@@ -1,0 +1,134 @@
+/// Un día por fila (2024-01-01 → 2026-01-02): calendario laboral de Madrid, sprint, clima real y ausencias.
+table Calendario
+	dataCategory: Time
+
+	/// Agentes ausentes (vacaciones o baja) ÷ agentes en plantilla, en días laborables.
+	measure '% Agentes ausentes' = ```
+			CALCULATE(
+				DIVIDE(SUM(Calendario[Agentes ausentes]), SUM(Calendario[Agentes activos])),
+				Calendario[Laborable] = TRUE()
+			)
+			```
+		formatString: 0.0%
+		displayFolder: Contexto
+
+	/// Tickets que entran ÷ agentes disponibles-día laborable (aproximación a la carga/utilización).
+	measure 'Tickets por agente y día' = ```
+			DIVIDE(
+				[Tickets creados],
+				CALCULATE(SUM(Calendario[Agentes activos]) - SUM(Calendario[Agentes ausentes]), Calendario[Laborable] = TRUE())
+			)
+			```
+		formatString: 0.00
+		displayFolder: Contexto
+
+	column Fecha
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		summarizeBy: none
+		sourceColumn: fecha
+		isKey
+	column 'Año natural'
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: anio
+	column 'Mes número'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: mes
+	column Mes
+		dataType: string
+		summarizeBy: none
+		sourceColumn: mes_nombre
+		sortByColumn: 'Mes número'
+	column 'Año-Mes número'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: anio_mes_num
+	column 'Año-Mes'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: anio_mes
+		sortByColumn: 'Año-Mes número'
+	column 'Día de la semana'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: dia_semana
+	column 'Sprint id'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: sprint_id
+	column Laborable
+		dataType: boolean
+		summarizeBy: none
+		sourceColumn: es_laborable
+	column 'Festivo Madrid'
+		dataType: boolean
+		summarizeBy: none
+		sourceColumn: es_festivo_madrid
+	column Festivo
+		dataType: string
+		summarizeBy: none
+		sourceColumn: nombre_festivo
+	/// Post-festivo, Lunes, Resto de laborables o No laborable
+	column 'Tipo de día'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: tipo_dia
+	column 'Temperatura máxima'
+		dataType: decimal
+		formatString: 0.0" °C"
+		summarizeBy: none
+		sourceColumn: temp_max
+	/// > 35 °C o ≤ 35 °C (Open-Meteo, Madrid)
+	column 'Día caluroso'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: dia_caluroso
+	column 'Incidencias Infra P1/P2'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: infra_p1_p2_creados
+	column 'Agentes activos'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: agentes_activos
+	column 'Agentes ausentes'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: agentes_ausentes
+
+	partition 'Calendario' = m
+		mode: import
+		source =
+				let
+					Origen = PostgreSQL.Database(Servidor, #"Base de datos"),
+					Vista = Origen{[Schema = "servicedesk", Item = "v_kpis_diarios"]}[Data],
+					#"Seleccionadas columnas" = Table.SelectColumns(Vista, {"fecha", "anio", "mes", "dia_semana", "sprint_id",
+						"es_laborable", "es_festivo_madrid", "nombre_festivo", "es_post_festivo", "temp_max", "es_dia_caluroso",
+						"infra_p1_p2_creados", "agentes_activos", "agentes_ausentes"}),
+					#"Añadido nombre del mes" = Table.AddColumn(#"Seleccionadas columnas", "mes_nombre",
+						each {"ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"}{[mes] - 1}, type text),
+					#"Añadido año-mes" = Table.AddColumn(#"Añadido nombre del mes", "anio_mes",
+						each Text.From([anio]) & "-" & Text.PadStart(Text.From([mes]), 2, "0"), type text),
+					#"Añadido año-mes número" = Table.AddColumn(#"Añadido año-mes", "anio_mes_num", each [anio] * 100 + [mes], Int64.Type),
+					// Tipo de día para el efecto post-festivo (comparación justa: lunes frente a post-festivo)
+					#"Añadido tipo de día" = Table.AddColumn(#"Añadido año-mes número", "tipo_dia",
+						each if not [es_laborable] then "No laborable" else if [es_post_festivo] then "Post-festivo"
+							 else if [dia_semana] = 1 then "Lunes" else "Resto de laborables", type text),
+					#"Añadido día caluroso" = Table.AddColumn(#"Añadido tipo de día", "dia_caluroso",
+						each if [es_dia_caluroso] then "> 35 °C" else "≤ 35 °C", type text),
+					#"Quitadas columnas auxiliares" = Table.RemoveColumns(#"Añadido día caluroso", {"es_post_festivo", "es_dia_caluroso"}),
+					#"Cambiados tipos" = Table.TransformColumnTypes(#"Quitadas columnas auxiliares", {
+						{"fecha", type date}, {"anio", Int64.Type}, {"mes", Int64.Type}, {"dia_semana", Int64.Type},
+						{"temp_max", type number}, {"infra_p1_p2_creados", Int64.Type}, {"agentes_activos", Int64.Type},
+						{"agentes_ausentes", Int64.Type}, {"es_laborable", type logical}, {"es_festivo_madrid", type logical}})
+				in
+					#"Cambiados tipos"

@@ -1,0 +1,234 @@
+/// Configuración del cuadro de objetivos: un KPI por fila con sus umbrales. Tabla sin relaciones, por diseño.
+table 'Objetivos KPI'
+
+	/// Valor del KPI de la fila de Objetivos KPI en contexto (una sola medida para las 15 tarjetas).
+	measure 'Valor KPI' = ```
+			SWITCH(
+				SELECTEDVALUE('Objetivos KPI'[Id]),
+				1, [Ritmo de cierre],
+				2, [Backlog al cierre],
+				3, [Resolución en primer nivel],
+				4, [% Escalados],
+				5, [SLA 1ª respuesta],
+				6, [% Cumplimiento SLA],
+				7, [SLA P1],
+				8, [Balance medio por sprint €],
+				9, [% Penalización sobre cuota],
+				10, [Clientes en tramo deficiente],
+				11, [% Ingresos en riesgo],
+				12, [MTTR (h)],
+				13, [1ª respuesta media (min)],
+				14, [Tickets por agente y día],
+				15, [% Agentes ausentes],
+				BLANK()
+			)
+			```
+		formatStringDefinition = SWITCH(SELECTEDVALUE('Objetivos KPI'[Formato]), "pct", "0.0%", "eur", "#,##0 €", "num", "#,##0", "dec", "0.0", "dec2", "0.00", "h", "0.0"" h""", "min", "0"" min""", "0.0")
+		displayFolder: Cuadro de objetivos
+
+	/// Valor del KPI en el sprint anterior (solo con un sprint seleccionado).
+	measure 'Valor KPI sprint anterior' = ```
+			VAR _orden = MAX(Sprint[Orden])
+			RETURN
+				IF(
+					HASONEVALUE(Sprint[Sprint]) && _orden > 1,
+					CALCULATE([Valor KPI], REMOVEFILTERS(Sprint), Sprint[Orden] = _orden - 1)
+				)
+			```
+		formatStringDefinition = SWITCH(SELECTEDVALUE('Objetivos KPI'[Formato]), "pct", "0.0%", "eur", "#,##0 €", "num", "#,##0", "dec", "0.0", "dec2", "0.00", "h", "0.0"" h""", "min", "0"" min""", "0.0")
+		displayFolder: Cuadro de objetivos
+
+	/// Cumplido si el KPI alcanza su objetivo (≥ si mayor es mejor, ≤ si menor es mejor); si no, Incumplido.
+	measure 'Estado KPI' = ```
+			VAR _v = [Valor KPI]
+			VAR _mayor = SELECTEDVALUE('Objetivos KPI'[Sentido]) = "Mayor es mejor"
+			VAR _obj = SELECTEDVALUE('Objetivos KPI'[Objetivo])
+			RETURN
+				SWITCH(
+					TRUE(),
+					ISBLANK(_v) || ISBLANK(_obj), BLANK(),
+					_mayor && _v >= _obj, "Cumplido",
+					NOT _mayor && _v <= _obj, "Cumplido",
+					"Incumplido"
+				)
+			```
+		displayFolder: Cuadro de objetivos
+
+	/// Estado del KPI en el sprint anterior.
+	measure 'Estado KPI sprint anterior' = ```
+			VAR _v = [Valor KPI sprint anterior]
+			VAR _mayor = SELECTEDVALUE('Objetivos KPI'[Sentido]) = "Mayor es mejor"
+			VAR _obj = SELECTEDVALUE('Objetivos KPI'[Objetivo])
+			RETURN
+				SWITCH(
+					TRUE(),
+					ISBLANK(_v) || ISBLANK(_obj), BLANK(),
+					_mayor && _v >= _obj, "Cumplido",
+					NOT _mayor && _v <= _obj, "Cumplido",
+					"Incumplido"
+				)
+			```
+		displayFolder: Cuadro de objetivos
+
+	/// Cambio frente al sprint anterior: en puntos si el KPI es un %, en % si es una cifra.
+	measure 'Variación KPI' = ```
+			VAR _v = [Valor KPI]
+			VAR _p = [Valor KPI sprint anterior]
+			RETURN
+				IF(
+					NOT ISBLANK(_v) && NOT ISBLANK(_p),
+					IF(SELECTEDVALUE('Objetivos KPI'[Formato]) = "pct", _v - _p, DIVIDE(_v - _p, ABS(_p)))
+				)
+			```
+		formatString: 0.0%
+		displayFolder: Cuadro de objetivos
+
+	/// Flecha y variación frente al sprint anterior (pp = puntos porcentuales).
+	measure 'Variación KPI texto' = ```
+			VAR _d = [Variación KPI]
+			VAR _flecha = IF(_d > 0, "↗ ", IF(_d < 0, "↘ ", "→ "))
+			RETURN
+				IF(
+					ISBLANK(_d),
+					"—",
+					_flecha
+						& IF(
+							SELECTEDVALUE('Objetivos KPI'[Formato]) = "pct",
+							FORMAT(_d * 100, "+0.0;-0.0;0.0") & " pp",
+							FORMAT(_d, "+0.0%;-0.0%;0.0%")
+						)
+				)
+			```
+		displayFolder: Cuadro de objetivos
+
+	/// Verde si el KPI mejora frente al sprint anterior, rojo si empeora.
+	measure 'Color variación' = ```
+			VAR _d = [Variación KPI]
+			VAR _mayor = SELECTEDVALUE('Objetivos KPI'[Sentido]) = "Mayor es mejor"
+			RETURN
+				SWITCH(
+					TRUE(),
+					ISBLANK(_d) || _d = 0, "#605E5C",
+					(_mayor && _d > 0) || (NOT _mayor && _d < 0), "#1E7B5C",
+					"#C0392B"
+				)
+			```
+		displayFolder: Cuadro de objetivos
+
+	/// Verde si se cumple el objetivo, rojo si no, gris si no hay datos.
+	measure 'Color estado' = ```
+			SWITCH(
+				[Estado KPI],
+				"Cumplido", "#1E7B5C",
+				"Incumplido", "#C0392B",
+				"#9AA3AD"
+			)
+			```
+		displayFolder: Cuadro de objetivos
+
+	/// Texto blanco sobre verde, rojo o gris (contraste AA).
+	measure 'Color texto estado' = "#FFFFFF"
+		displayFolder: Cuadro de objetivos
+
+	/// Estado para mostrar en la etiqueta.
+	measure 'Texto estado' = COALESCE([Estado KPI], "Sin datos")
+		displayFolder: Cuadro de objetivos
+
+	/// Texto de referencia: con qué sprint se compara.
+	measure 'Etiqueta sprint anterior' = ```
+			VAR _orden = MAX(Sprint[Orden])
+			VAR _anterior = CALCULATE(MAX(Sprint[Sprint]), REMOVEFILTERS(Sprint), Sprint[Orden] = _orden - 1)
+			RETURN IF(HASONEVALUE(Sprint[Sprint]) && NOT ISBLANK(_anterior), "vs sprint " & _anterior, "Elige un sprint")
+			```
+		displayFolder: Cuadro de objetivos
+
+	/// Nº de KPI que cumplen su objetivo.
+	measure 'KPI Cumplido' = COUNTROWS(FILTER(ALL('Objetivos KPI'[Id]), [Estado KPI] = "Cumplido")) + 0
+		formatString: #,##0
+		displayFolder: Cuadro de objetivos
+
+	/// Nº de KPI que no cumplen su objetivo.
+	measure 'KPI Incumplido' = COUNTROWS(FILTER(ALL('Objetivos KPI'[Id]), [Estado KPI] = "Incumplido")) + 0
+		formatString: #,##0
+		displayFolder: Cuadro de objetivos
+
+	/// Nº de KPI cumplidos en el sprint anterior.
+	measure 'KPI Cumplido sprint anterior' = COUNTROWS(FILTER(ALL('Objetivos KPI'[Id]), [Estado KPI sprint anterior] = "Cumplido")) + 0
+		formatString: #,##0
+		displayFolder: Cuadro de objetivos
+
+	/// Nº de KPI incumplidos en el sprint anterior.
+	measure 'KPI Incumplido sprint anterior' = COUNTROWS(FILTER(ALL('Objetivos KPI'[Id]), [Estado KPI sprint anterior] = "Incumplido")) + 0
+		formatString: #,##0
+		displayFolder: Cuadro de objetivos
+
+	column Id
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: Id
+		isKey
+	column Bloque
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Bloque
+		sortByColumn: 'Orden bloque'
+	column 'Orden bloque'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: Orden bloque
+	column Código
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Código
+		sortByColumn: Id
+	column KPI
+		dataType: string
+		summarizeBy: none
+		sourceColumn: KPI
+		sortByColumn: Id
+	column Sentido
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Sentido
+	/// Umbral del KPI: se cumple si lo alcanza (≥ o ≤ según el sentido)
+	column Objetivo
+		dataType: double
+		summarizeBy: none
+		sourceColumn: Objetivo
+	column Formato
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: Formato
+
+	partition 'Objetivos KPI' = m
+		mode: import
+		source =
+				let
+					// Objetivo de cada KPI (decidido con la estudiante el 2026-10-19). Dos estados: Cumplido / Incumplido.
+					// Para cambiar un objetivo basta con editar su fila: tarjetas y resumen se recalculan solos.
+					Objetivos = #table(
+						type table [Id = Int64.Type, Bloque = text, #"Orden bloque" = Int64.Type, Código = text, KPI = text,
+							Sentido = text, Objetivo = number, Formato = text],
+						{
+							{1, "KPI TICKETS", 1, "KPI 1", "Ritmo de cierre", "Mayor es mejor", 1.0, "pct"},
+							{2, "KPI TICKETS", 1, "KPI 2", "Backlog al cierre", "Menor es mejor", 110, "num"},
+							{3, "KPI TICKETS", 1, "KPI 3", "Resolución en primer nivel", "Mayor es mejor", 0.65, "pct"},
+							{4, "KPI TICKETS", 1, "KPI 4", "% Escalados", "Menor es mejor", 0.35, "pct"},
+							{5, "SLA", 2, "KPI 5", "SLA 1ª respuesta", "Mayor es mejor", 0.95, "pct"},
+							{6, "SLA", 2, "KPI 6", "SLA resolución", "Mayor es mejor", 0.92, "pct"},
+							{7, "SLA", 2, "KPI 7", "SLA de los P1", "Mayor es mejor", 0.95, "pct"},
+							{8, "NEGOCIO", 3, "KPI 8", "Balance medio por sprint", "Mayor es mejor", -5000, "eur"},
+							{9, "NEGOCIO", 3, "KPI 9", "Penalización sobre la cuota", "Menor es mejor", 0.02, "pct"},
+							{10, "NEGOCIO", 3, "KPI 10", "Clientes en tramo deficiente", "Menor es mejor", 6, "dec"},
+							{11, "NEGOCIO", 3, "KPI 11", "Ingresos en riesgo", "Menor es mejor", 0.1, "pct"},
+							{12, "OPERACIÓN", 4, "KPI 12", "MTTR (horas de SLA)", "Menor es mejor", 17, "h"},
+							{13, "OPERACIÓN", 4, "KPI 13", "1ª respuesta media", "Menor es mejor", 90, "min"},
+							{14, "OPERACIÓN", 4, "KPI 14", "Tickets por agente y día", "Menor es mejor", 1.65, "dec2"},
+							{15, "OPERACIÓN", 4, "KPI 15", "% Agentes ausentes", "Menor es mejor", 0.1, "pct"}
+						}
+					)
+				in
+					Objetivos

@@ -1,0 +1,133 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 0,
+        "y": 197
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 580.119262731451,
+            "y": -50
+          },
+          "nodeIndex": "Calendario",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 409.08300201274278,
+            "y": 533.20805564547607
+          },
+          "nodeIndex": "Cliente",
+          "nodeLineageTag": "49f33e4d-3c37-4586-9a78-e7c325446d8e",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1148.4577367465338,
+            "y": 155.33512743581207
+          },
+          "nodeIndex": "Departamento",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 50,
+            "y": 300.10983060944875
+          },
+          "nodeIndex": "Facturación",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1470.4577367465336,
+            "y": 39.403762766768295
+          },
+          "nodeIndex": "Objetivos KPI",
+          "nodeLineageTag": "34b61100-c971-4ce9-8c2e-976259f7c2c0",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1120.5784494142888,
+            "y": 578.80752553353659
+          },
+          "nodeIndex": "Política SLA",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 221.60346240195281,
+            "y": -46.059860105547955
+          },
+          "nodeIndex": "Sprint",
+          "size": {
+            "height": 296,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 864.24410688582725,
+            "y": 228.62497101725796
+          },
+          "nodeIndex": "Tickets",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1704.4577367465336,
+            "y": 341.60402782273803
+          },
+          "nodeIndex": "Medidas",
+          "nodeLineageTag": "32c753b6-1ace-4d8c-8cfd-e6de73c2d1de",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "Todas las tablas",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "Todas las tablas",
+  "defaultDiagram": "Todas las tablas"
+}

@@ -1,0 +1,34 @@
+/// Matriz de SLA tipo × prioridad (Ficha §0.2).
+table 'Política SLA'
+
+	column 'SLA id'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: sla_id
+		isKey
+	/// Incidencia, Petición o Tarea
+	column Tipo
+		dataType: string
+		summarizeBy: none
+		sourceColumn: tipo
+	/// P1 (crítica) a P4 (baja)
+	column Prioridad
+		dataType: string
+		summarizeBy: none
+		sourceColumn: prioridad
+	/// 24x7 (P1) o laboral L–V 9–18 sin festivos de Madrid
+	column Reloj
+		dataType: string
+		summarizeBy: none
+		sourceColumn: reloj
+
+	partition 'Política SLA' = m
+		mode: import
+		source =
+				let
+					Origen = PostgreSQL.Database(Servidor, #"Base de datos"),
+					Tabla = Origen{[Schema = "servicedesk", Item = "dim_sla"]}[Data],
+					#"Seleccionadas columnas" = Table.SelectColumns(Tabla, {"sla_id", "tipo", "prioridad", "reloj"})
+				in
+					#"Seleccionadas columnas"

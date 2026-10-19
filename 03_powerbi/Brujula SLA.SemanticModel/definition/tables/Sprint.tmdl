@@ -1,0 +1,72 @@
+/// Sprints de 3 semanas (lunes → viernes de la 3ª). Unidad de medición del SLA y de facturación.
+table Sprint
+
+	/// Sprint elegido en los filtros, con sus fechas.
+	measure 'Periodo seleccionado' = ```
+			IF(
+				HASONEVALUE(Sprint[Sprint]),
+				"Sprint " & SELECTEDVALUE(Sprint[Periodo]),
+				"Varios sprints (" & COUNTROWS(VALUES(Sprint[Sprint])) & ")"
+			)
+			```
+		displayFolder: Sprint
+
+	/// AAAA-NN por el año en que empieza
+	column Sprint
+		dataType: string
+		summarizeBy: none
+		sourceColumn: sprint_id
+		isKey
+		sortByColumn: Orden
+	/// Año del sprint (2024-18 acaba en enero de 2025 pero es de 2024)
+	column Año
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: anio_sprint
+	column Número
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: numero
+	/// Sprint con sus fechas, p. ej. 2024-11 · 29/07–16/08
+	column Periodo
+		dataType: string
+		summarizeBy: none
+		sourceColumn: periodo
+		sortByColumn: Orden
+	column Inicio
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		summarizeBy: none
+		sourceColumn: fecha_inicio
+	column Fin
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		summarizeBy: none
+		sourceColumn: fecha_fin
+	column 'Días laborables'
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: dias_laborables
+	/// Posición del sprint (1 = 2024-01): sirve para encontrar el sprint anterior
+	column Orden
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: orden
+
+	partition 'Sprint' = m
+		mode: import
+		source =
+				let
+					Origen = PostgreSQL.Database(Servidor, #"Base de datos"),
+					Tabla = Origen{[Schema = "servicedesk", Item = "dim_sprint"]}[Data],
+					#"Seleccionadas columnas" = Table.SelectColumns(Tabla, {"sprint_id", "anio_sprint", "numero", "fecha_inicio", "fecha_fin", "dias_laborables"}),
+					#"Ordenadas filas" = Table.Sort(#"Seleccionadas columnas", {{"fecha_inicio", Order.Ascending}}),
+					#"Añadido orden" = Table.AddIndexColumn(#"Ordenadas filas", "orden", 1, 1, Int64.Type),
+					#"Añadido periodo" = Table.AddColumn(#"Añadido orden", "periodo",
+						each [sprint_id] & " · " & Date.ToText([fecha_inicio], "dd/MM") & "–" & Date.ToText([fecha_fin], "dd/MM"), type text),
+					#"Cambiados tipos" = Table.TransformColumnTypes(#"Añadido periodo", {
+						{"anio_sprint", Int64.Type}, {"numero", Int64.Type}, {"dias_laborables", Int64.Type},
+						{"fecha_inicio", type date}, {"fecha_fin", type date}})
+				in
+					#"Cambiados tipos"

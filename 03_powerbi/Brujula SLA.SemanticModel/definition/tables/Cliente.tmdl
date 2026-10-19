@@ -1,0 +1,74 @@
+/// Empresas cliente ficticias (40) con su nivel de contrato.
+table Cliente
+
+	column 'Cliente id'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: cliente_id
+		isKey
+	/// Nombre ficticio de la empresa cliente
+	column Cliente
+		dataType: string
+		summarizeBy: none
+		sourceColumn: cliente
+	column Sector
+		dataType: string
+		summarizeBy: none
+		sourceColumn: sector
+	column 'Comunidad autónoma'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: comunidad_autonoma
+		dataCategory: StateOrProvince
+	column 'Orden nivel'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: orden_nivel
+	/// Gold, Silver o Bronze
+	column 'Nivel de contrato'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: nivel_contrato
+		sortByColumn: 'Orden nivel'
+	/// Gold 95 %, Silver 90 %, Bronze 85 %
+	column 'Objetivo contractual'
+		dataType: decimal
+		formatString: 0%
+		summarizeBy: none
+		sourceColumn: objetivo_contractual
+	column 'Contrato y objetivo'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: contrato_objetivo
+	column 'Cuota anual'
+		dataType: decimal
+		formatString: #,##0 €
+		isHidden
+		summarizeBy: none
+		sourceColumn: cuota_anual_eur
+	column 'Fecha de alta'
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		summarizeBy: none
+		sourceColumn: fecha_alta
+
+	partition 'Cliente' = m
+		mode: import
+		source =
+				let
+					Origen = PostgreSQL.Database(Servidor, #"Base de datos"),
+					Vista = Origen{[Schema = "servicedesk", Item = "v_perfil_cliente"]}[Data],
+					#"Seleccionadas columnas" = Table.SelectColumns(Vista, {"cliente_id", "cliente", "sector", "comunidad_autonoma",
+						"nivel_contrato", "cuota_anual_eur", "fecha_alta"}),
+					#"Añadido orden del nivel" = Table.AddColumn(#"Seleccionadas columnas", "orden_nivel",
+						each if [nivel_contrato] = "Gold" then 1 else if [nivel_contrato] = "Silver" then 2 else 3, Int64.Type),
+					#"Añadido objetivo contractual" = Table.AddColumn(#"Añadido orden del nivel", "objetivo_contractual",
+						each if [nivel_contrato] = "Gold" then 0.95 else if [nivel_contrato] = "Silver" then 0.90 else 0.85, type number),
+					#"Añadido contrato y objetivo" = Table.AddColumn(#"Añadido objetivo contractual", "contrato_objetivo",
+						each [nivel_contrato] & " · objetivo " & Text.From(Number.Round([objetivo_contractual] * 100)) & " %", type text),
+					#"Cambiados tipos" = Table.TransformColumnTypes(#"Añadido contrato y objetivo", {
+						{"cuota_anual_eur", Currency.Type}, {"fecha_alta", type date}})
+				in
+					#"Cambiados tipos"

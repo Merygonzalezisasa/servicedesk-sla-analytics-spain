@@ -1,7 +1,7 @@
 # Progreso — Brújula Soporte IT · Service Desk SLA Analytics
 
 ## Estado actual
-**Fase:** 2 (SQL) · **Paso:** 4 de 4 · **Última sesión:** 2026-10-19
+**Fase:** 3 (Power BI) · **Paso:** 0 (enfoque) · **Última sesión:** 2026-10-19
 
 ## Bitácora
 ### Fase 0 — Decidir ✅ (2026-10-15)
@@ -197,7 +197,7 @@
 - [x] Pregunta de control del Paso 2 (¿por qué la contraseña va en `.env`?): bien respondida.
       Matiz añadido: el historial de git la conserva aunque se borre después.
 
-### Fase 2 — SQL 🚧
+### Fase 2 — SQL ✅ (2026-10-19)
 Plan (Parte 5 de la plantilla): 4 archivos en 02_sql/, uno por uno; la estudiante los ejecuta en su base.
 Decisión: `raw` = zona de aterrizaje (acepta lo que traen los CSV); `servicedesk` = modelo con FKs y
 CHECKs (la base rechaza lo que no cumple las reglas del negocio).
@@ -269,7 +269,7 @@ CHECKs (la base rechaza lo que no cumple las reglas del negocio).
         (facturación anual): una cifra facturada debe estar cerrada; solo se rectifica si hay error.
         Añadido: p_forzar = rectificación consciente; calculado_en deja rastro; en real, guardar versiones.
   - [x] Commit `a368bff` subido.
-- [ ] Paso 4 — `04_sample_queries.sql`  ← ACÁ VOY
+- [x] Paso 4 — `04_sample_queries.sql`
   - [x] 11 consultas comentadas (pregunta + lectura con cifras) para las 6 preguntas: P1a cumplimiento
         tipo × prioridad × nivel; P1b clientes bajo objetivo (34 cliente-año; 7/8 Gold en 2025); P1c al
         borde < 1 punto (Gold 17,9 % de sprints); P2a balance (−287.037 €, −2,59 % de 11,08 M€); P2b Pareto;
@@ -277,7 +277,28 @@ CHECKs (la base rechaza lo que no cumple las reglas del negocio).
         P3b calor dentro de jul-ago 0,91 vs 0,39 con ausencias iguales; P4 agosto ~2 tickets/agente,
         79–83 %; P5 backlog por % SLA consumido; P6 perfiles por cuartiles (dinero en Gold "buen servicio").
   - [x] Todas probadas. Corregidas 2 lecturas que no cuadraban con los datos (P6 y P2c).
-  - [ ] Ejecución de la estudiante + pregunta de control + commit → cierre de la Fase 2.
+  - [x] Pregunta de control (¿por qué P3b compara solo dentro de jul-ago?): no la acertó — explicó el
+        mecanismo del calor (servidores), no el diseño. Explicado: variable de confusión (calor y
+        vacaciones coinciden; ejemplo helados/ahogamientos); dentro del verano las ausencias son iguales
+        (17,8 % vs 17,0 %) → la diferencia 0,91 vs 0,39 es del calor. Repasar en la Fase 4.
+  - [x] Ejecución de la estudiante + commit `bf81ee5`.
+
+### Fase 3 — Power BI 🚧
+- [x] Enfoque: la estudiante pide que el agente lo construya todo y le explique el proceso. Página a página.
+- [x] Investigación de mercado (HDI 7 KPI, MetricNet, N-able): FLR, escalado, MTTR, 1ª respuesta, backlog,
+      carga por agente, créditos de servicio, ingresos en riesgo. No disponibles: CSAT, FCR, coste por ticket.
+- [x] Spec `_brief/report-spec.md` (v2, 4 páginas, filtro por sprint en todas). La estudiante aporta un ejemplo
+      (cuadro de objetivos de su empresa; no se copian nombres ni marca) → página 1 = "Cumplimiento de objetivos".
+- [x] SQL: `v_ticket_enriquecido` + fecha_medicion + penalizacion_atribuida_eur (suma 361.484 € = facturación);
+      nueva `v_facturacion_sprint` (margen sobre tramo inferior). Sin commit todavía.
+- [x] Modelo TMDL a mano (EULA del MCP de modelado no aceptada → Tier 2): 8 tablas, Sprint→Calendario→Tickets
+      (fecha de medición; creación y salida inactivas), Objetivos KPI (tabla de configuración desconectada).
+      Error en Desktop: sangría en model.tmdl línea 1 → corregido.
+- [x] Página 1 (70 visuales, validación 0 errores): rail de 7 filtros, resumen y 15 KPI en 4 bloques.
+      Cambio de la estudiante: solo dos estados (Cumplido / Incumplido) con un único objetivo por KPI.
+- [x] Generadores guardados en `03_powerbi/_generadores/` (build_model.py, build_report.py).
+- [ ] Abrir en Desktop, credenciales, actualizar, captura y revisión de la página 1  ← ACÁ VOY
+- [ ] Decidir: ¿Objetivos KPI a PostgreSQL (CSV de configuración)?
 
 ## Dudas abiertas
 - Tiempos concretos de la matriz SLA y de los tramos: abiertos a ajuste antes de la Fase 1.

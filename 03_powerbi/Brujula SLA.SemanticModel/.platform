@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "Brujula SLA"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "f50ac227-000d-c8fc-2584-380231228192"
+  }
+}

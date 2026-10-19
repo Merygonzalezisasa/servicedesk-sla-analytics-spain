@@ -1,0 +1,28 @@
+/// Grupos resolutores. Todo ticket entra por Service Desk N1.
+table Departamento
+
+	column 'Departamento id'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: departamento_id
+		isKey
+	column Departamento
+		dataType: string
+		summarizeBy: none
+		sourceColumn: nombre
+	column 'Nivel de soporte'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: nivel_soporte
+
+	partition 'Departamento' = m
+		mode: import
+		source =
+				let
+					Origen = PostgreSQL.Database(Servidor, #"Base de datos"),
+					Tabla = Origen{[Schema = "servicedesk", Item = "dim_departamento"]}[Data],
+					#"Seleccionadas columnas" = Table.SelectColumns(Tabla, {"departamento_id", "nombre", "nivel_soporte"}),
+					#"Cambiados tipos" = Table.TransformColumnTypes(#"Seleccionadas columnas", {{"departamento_id", Int64.Type}})
+				in
+					#"Cambiados tipos"

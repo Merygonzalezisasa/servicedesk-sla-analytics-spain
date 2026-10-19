@@ -1,0 +1,247 @@
+/// Un ticket por fila (sintético, SEED=42). Grano: ticket. Corte 2026-01-02 18:00.
+table Tickets
+
+	/// Tickets que entran en el periodo (por fecha de creación).
+	measure 'Tickets creados' = ```
+			CALCULATE(
+				COUNTROWS(Tickets),
+				USERELATIONSHIP(Tickets[Fecha creación], Calendario[Fecha])
+			)
+			```
+		formatString: #,##0
+		displayFolder: Volumen
+
+	/// Tickets que dejan de estar abiertos en el periodo: resueltos o cancelados.
+	measure 'Tickets salida' = ```
+			CALCULATE(
+				COUNTROWS(Tickets),
+				USERELATIONSHIP(Tickets[Fecha salida], Calendario[Fecha])
+			)
+			```
+		formatString: #,##0
+		displayFolder: Volumen
+
+	/// Tickets que salen ÷ tickets que entran. Por encima del 100 % el backlog baja.
+	measure 'Ritmo de cierre' = DIVIDE([Tickets salida], [Tickets creados])
+		formatString: 0.0%
+		displayFolder: Volumen
+
+	/// Tickets abiertos al final del último día del periodo (respeta cliente, departamento y SLA).
+	measure 'Backlog al cierre' = ```
+			VAR _fin = MAX(Calendario[Fecha])
+			RETURN
+				CALCULATE(
+					COUNTROWS(Tickets),
+					REMOVEFILTERS(Calendario),
+					REMOVEFILTERS(Sprint),
+					Tickets[Fecha creación] <= _fin,
+					ISBLANK(Tickets[Fecha salida]) || Tickets[Fecha salida] > _fin
+				)
+			```
+		formatString: #,##0
+		displayFolder: Volumen
+
+	/// Incidencias y peticiones medidas (cumplidas o incumplidas) en el periodo: la base del % que se factura.
+	measure 'Tickets computables' = CALCULATE(COUNTROWS(Tickets), Tickets[Computa facturación] = TRUE())
+		formatString: #,##0
+		displayFolder: SLA
+
+	/// Tickets computables resueltos dentro del SLA.
+	measure 'Tickets cumplidos' = CALCULATE([Tickets computables], Tickets[Cumple resolución] = TRUE())
+		formatString: #,##0
+		displayFolder: SLA
+
+	/// Tickets computables que agotaron su SLA de resolución.
+	measure 'Tickets incumplidos' = [Tickets computables] - [Tickets cumplidos]
+		formatString: #,##0
+		displayFolder: SLA
+
+	/// Tickets computables cumplidos ÷ computables (sin ponderar, como en el contrato).
+	measure '% Cumplimiento SLA' = DIVIDE([Tickets cumplidos], [Tickets computables])
+		formatString: 0.0%
+		displayFolder: SLA
+
+	/// Complemento del % de cumplimiento.
+	measure '% Incumplimiento' = DIVIDE([Tickets incumplidos], [Tickets computables])
+		formatString: 0.0%
+		displayFolder: SLA
+
+	/// % de tickets computables con la primera respuesta dentro de plazo.
+	measure 'SLA 1ª respuesta' = DIVIDE(CALCULATE([Tickets computables], Tickets[Cumple respuesta] = TRUE()), [Tickets computables])
+		formatString: 0.0%
+		displayFolder: SLA
+
+	/// % de cumplimiento de las incidencias críticas (P1). En blanco si no hubo P1 en el periodo.
+	measure 'SLA P1' = CALCULATE([% Cumplimiento SLA], 'Política SLA'[Prioridad] = "P1")
+		formatString: 0.0%
+		displayFolder: SLA
+
+	/// First Level Resolution (HDI): % de tickets resueltos por Service Desk N1 sin escalar.
+	measure 'Resolución en primer nivel' = ```
+			DIVIDE(
+				CALCULATE(COUNTROWS(Tickets), Tickets[Resuelto] = TRUE(), Tickets[Departamento id] = 1, Tickets[Reasignaciones] = 0),
+				CALCULATE(COUNTROWS(Tickets), Tickets[Resuelto] = TRUE())
+			)
+			```
+		formatString: 0.0%
+		displayFolder: Operación
+
+	/// % de tickets medidos que pasaron por al menos una reasignación.
+	measure '% Escalados' = DIVIDE(CALCULATE(COUNTROWS(Tickets), Tickets[Reasignaciones] > 0), COUNTROWS(Tickets))
+		formatString: 0.0%
+		displayFolder: Operación
+
+	/// Mean Time To Resolve: horas de reloj de SLA (sin pausas) de los tickets resueltos.
+	measure 'MTTR (h)' = ```
+			DIVIDE(
+				CALCULATE(SUM(Tickets[Minutos resolución]), Tickets[Resuelto] = TRUE()),
+				CALCULATE(COUNTROWS(Tickets), Tickets[Resuelto] = TRUE())
+			) / 60
+			```
+		formatString: 0.0" h"
+		displayFolder: Operación
+
+	/// Minutos de reloj de SLA hasta la primera respuesta.
+	measure '1ª respuesta media (min)' = AVERAGE(Tickets[Minutos respuesta])
+		formatString: 0" min"
+		displayFolder: Operación
+
+	/// Penalización oficial del cliente-sprint repartida a partes iguales entre sus tickets incumplidos.
+	measure 'Penalización atribuida €' = SUM(Tickets[Penalización atribuida])
+		formatString: #,##0 €
+		displayFolder: Facturación
+
+	/// % acumulado de la penalización, de la categoría que más penaliza a la que menos (curva de Pareto).
+	measure '% Acumulado Pareto' = ```
+			VAR _actual = [Penalización atribuida €]
+			VAR _total = CALCULATE([Penalización atribuida €], REMOVEFILTERS(Tickets[Departamento · tipo]))
+			VAR _acumulado =
+				SUMX(
+					FILTER(ALLSELECTED(Tickets[Departamento · tipo]), [Penalización atribuida €] >= _actual),
+					[Penalización atribuida €]
+				)
+			RETURN IF(NOT ISBLANK(_actual), DIVIDE(_acumulado, _total))
+			```
+		formatString: 0.0%
+		displayFolder: Facturación
+
+	/// Identificador del ticket (TCK-000001)
+	column Ticket
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: ticket_id
+	column 'Fecha creación'
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		isHidden
+		summarizeBy: none
+		sourceColumn: fecha
+	/// Día en que se conoce el resultado: resolución si cumple, vencimiento si incumple
+	column 'Fecha medición'
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		isHidden
+		summarizeBy: none
+		sourceColumn: fecha_medicion
+	/// Día de resolución o cancelación
+	column 'Fecha salida'
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		isHidden
+		summarizeBy: none
+		sourceColumn: fecha_salida
+	column 'Cliente id'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: cliente_id
+	column 'SLA id'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: sla_id
+	column 'Departamento id'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: departamento_id
+	/// Departamento que resuelve · tipo de ticket (categoría del Pareto)
+	column 'Departamento · tipo'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: departamento_tipo
+	/// cumplido, incumplido, en curso o cancelado
+	column 'Estado SLA'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: estado_sla
+	column 'Cumple respuesta'
+		dataType: boolean
+		isHidden
+		summarizeBy: none
+		sourceColumn: cumple_respuesta
+	column 'Cumple resolución'
+		dataType: boolean
+		isHidden
+		summarizeBy: none
+		sourceColumn: cumple_resolucion
+	column 'Computa facturación'
+		dataType: boolean
+		isHidden
+		summarizeBy: none
+		sourceColumn: computa_facturacion
+	column Resuelto
+		dataType: boolean
+		isHidden
+		summarizeBy: none
+		sourceColumn: resuelto
+	/// Número de veces que el ticket cambió de departamento
+	column Reasignaciones
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: n_reasignaciones
+	column 'Minutos respuesta'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: min_respuesta_sla
+	column 'Minutos resolución'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: min_resolucion_sla
+	column 'Penalización atribuida'
+		dataType: decimal
+		formatString: #,##0 €
+		isHidden
+		summarizeBy: none
+		sourceColumn: penalizacion_atribuida_eur
+
+	partition 'Tickets' = m
+		mode: import
+		source =
+				let
+					Origen = PostgreSQL.Database(Servidor, #"Base de datos"),
+					Vista = Origen{[Schema = "servicedesk", Item = "v_ticket_enriquecido"]}[Data],
+					#"Seleccionadas columnas" = Table.SelectColumns(Vista, {"ticket_id", "fecha", "fecha_medicion", "fecha_resolucion",
+						"fecha_cancelacion", "cliente_id", "sla_id", "departamento_id", "departamento", "tipo", "estado_sla",
+						"cumple_respuesta", "cumple_resolucion", "computa_facturacion", "n_reasignaciones", "min_respuesta_sla",
+						"min_resolucion_sla", "penalizacion_atribuida_eur"}),
+					// El ticket deja de estar abierto al resolverse o cancelarse
+					#"Añadida fecha de salida" = Table.AddColumn(#"Seleccionadas columnas", "fecha_salida",
+						each if [fecha_resolucion] <> null then DateTime.Date([fecha_resolucion])
+							 else if [fecha_cancelacion] <> null then DateTime.Date([fecha_cancelacion]) else null, type date),
+					#"Añadido indicador de resuelto" = Table.AddColumn(#"Añadida fecha de salida", "resuelto", each [fecha_resolucion] <> null, type logical),
+					// Categoría del Pareto: departamento que resuelve y tipo de ticket
+					#"Añadida categoría Pareto" = Table.AddColumn(#"Añadido indicador de resuelto", "departamento_tipo",
+						each [departamento] & " · " & [tipo], type text),
+					#"Quitadas columnas auxiliares" = Table.RemoveColumns(#"Añadida categoría Pareto",
+						{"fecha_resolucion", "fecha_cancelacion", "departamento", "tipo"}),
+					#"Cambiados tipos" = Table.TransformColumnTypes(#"Quitadas columnas auxiliares", {
+						{"fecha", type date}, {"fecha_medicion", type date}, {"departamento_id", Int64.Type},
+						{"n_reasignaciones", Int64.Type}, {"min_respuesta_sla", Int64.Type}, {"min_resolucion_sla", Int64.Type},
+						{"penalizacion_atribuida_eur", Currency.Type}, {"cumple_respuesta", type logical},
+						{"cumple_resolucion", type logical}, {"computa_facturacion", type logical}})
+				in
+					#"Cambiados tipos"

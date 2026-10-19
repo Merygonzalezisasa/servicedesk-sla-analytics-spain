@@ -1,0 +1,120 @@
+/// Facturación OFICIAL por cliente y sprint (la congela sp_calcular_facturacion_sprint). Grano: cliente × sprint.
+table 'Facturación'
+
+	/// Cuota de los sprints facturados (cuota anual ÷ nº de sprints del año).
+	measure 'Cuota facturada €' = SUM(Facturación[Cuota sprint])
+		formatString: #,##0 €
+		displayFolder: Facturación
+
+	/// Bonificaciones ganadas por superar el tramo de bonus.
+	measure 'Bonus €' = COALESCE(CALCULATE(SUM(Facturación[Ajuste]), Facturación[Ajuste] > 0), 0)
+		formatString: #,##0 €
+		displayFolder: Facturación
+
+	/// Penalizaciones (en positivo) por caer en tramo deficiente.
+	measure 'Penalización €' = COALESCE(-CALCULATE(SUM(Facturación[Ajuste]), Facturación[Ajuste] < 0), 0)
+		formatString: #,##0 €
+		displayFolder: Facturación
+
+	/// Bonus − penalización.
+	measure 'Balance €' = COALESCE(SUM(Facturación[Ajuste]), 0)
+		formatString: #,##0 €
+		displayFolder: Facturación
+
+	/// Balance ÷ nº de sprints del periodo: comparable entre un sprint y varios.
+	measure 'Balance medio por sprint €' = DIVIDE([Balance €], DISTINCTCOUNT(Facturación[Sprint id]))
+		formatString: #,##0 €
+		displayFolder: Facturación
+
+	/// Parte de la cuota que se pierde en penalizaciones (créditos de servicio).
+	measure '% Penalización sobre cuota' = DIVIDE([Penalización €], [Cuota facturada €])
+		formatString: 0.00%
+		displayFolder: Facturación
+
+	/// Nº de combinaciones cliente × sprint en tramo deficiente.
+	measure 'Cliente-sprints deficientes' = COALESCE(CALCULATE(COUNTROWS(Facturación), Facturación[Tramo] = "deficiente"), 0)
+		formatString: #,##0
+		displayFolder: Facturación
+
+	/// Clientes en tramo deficiente por sprint (media si hay varios sprints).
+	measure 'Clientes en tramo deficiente' = DIVIDE([Cliente-sprints deficientes], DISTINCTCOUNT(Facturación[Sprint id]))
+		formatString: #,##0.0
+		displayFolder: Facturación
+
+	/// Cuota de los cliente-sprints que quedaron a menos de 1 punto de caer al tramo inferior ÷ cuota total.
+	measure '% Ingresos en riesgo' = ```
+			DIVIDE(
+				CALCULATE(
+					[Cuota facturada €],
+					Facturación[Puntos sobre tramo inferior] < 1,
+					Facturación[Tramo] <> "deficiente",
+					NOT ISBLANK(Facturación[% cumplimiento]),
+					Facturación[% cumplimiento] < 100
+				),
+				[Cuota facturada €]
+			) + 0
+			```
+		formatString: 0.0%
+		displayFolder: Facturación
+
+	column 'Cliente id'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: cliente_id
+	column 'Sprint id'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: sprint_id
+	column 'Cuota sprint'
+		dataType: decimal
+		formatString: #,##0 €
+		isHidden
+		summarizeBy: none
+		sourceColumn: cuota_sprint_eur
+	column 'Tickets computables'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: n_tickets_computables
+	column 'Tickets cumplidos'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: n_cumplidos
+	column '% cumplimiento'
+		dataType: decimal
+		isHidden
+		summarizeBy: none
+		sourceColumn: pct_cumplimiento
+	/// bonus, neutro o deficiente
+	column Tramo
+		dataType: string
+		summarizeBy: none
+		sourceColumn: tipo_tramo
+	column Ajuste
+		dataType: decimal
+		formatString: #,##0 €
+		isHidden
+		summarizeBy: none
+		sourceColumn: ajuste_eur
+	column 'Puntos sobre tramo inferior'
+		dataType: decimal
+		isHidden
+		summarizeBy: none
+		sourceColumn: puntos_sobre_tramo_inferior
+
+	partition 'Facturación' = m
+		mode: import
+		source =
+				let
+					Origen = PostgreSQL.Database(Servidor, #"Base de datos"),
+					Vista = Origen{[Schema = "servicedesk", Item = "v_facturacion_sprint"]}[Data],
+					#"Seleccionadas columnas" = Table.SelectColumns(Vista, {"cliente_id", "sprint_id", "cuota_sprint_eur",
+						"n_tickets_computables", "n_cumplidos", "pct_cumplimiento", "tipo_tramo", "ajuste_eur", "puntos_sobre_tramo_inferior"}),
+					#"Cambiados tipos" = Table.TransformColumnTypes(#"Seleccionadas columnas", {
+						{"cuota_sprint_eur", Currency.Type}, {"ajuste_eur", Currency.Type}, {"pct_cumplimiento", type number},
+						{"puntos_sobre_tramo_inferior", type number}, {"n_tickets_computables", Int64.Type}, {"n_cumplidos", Int64.Type}})
+				in
+					#"Cambiados tipos"

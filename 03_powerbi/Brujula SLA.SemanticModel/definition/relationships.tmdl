@@ -1,0 +1,41 @@
+/// El sprint de cada día del calendario
+relationship 'Calendario a Sprint'
+	fromColumn: Calendario.'Sprint id'
+	toColumn: Sprint.Sprint
+
+/// Relación principal: un ticket cuenta en el día (y sprint) en que se conoce su resultado
+relationship 'Tickets a Calendario (medición)'
+	fromColumn: Tickets.'Fecha medición'
+	toColumn: Calendario.Fecha
+
+/// Inactiva: la usan las medidas de entrada de tickets con USERELATIONSHIP
+relationship 'Tickets a Calendario (creación)'
+	isActive: false
+	fromColumn: Tickets.'Fecha creación'
+	toColumn: Calendario.Fecha
+
+/// Inactiva: la usan las medidas de salida (resueltos o cancelados) y el backlog
+relationship 'Tickets a Calendario (salida)'
+	isActive: false
+	fromColumn: Tickets.'Fecha salida'
+	toColumn: Calendario.Fecha
+
+relationship 'Tickets a Cliente'
+	fromColumn: Tickets.'Cliente id'
+	toColumn: Cliente.'Cliente id'
+
+relationship 'Tickets a Política SLA'
+	fromColumn: Tickets.'SLA id'
+	toColumn: 'Política SLA'.'SLA id'
+
+relationship 'Tickets a Departamento'
+	fromColumn: Tickets.'Departamento id'
+	toColumn: Departamento.'Departamento id'
+
+relationship 'Facturación a Cliente'
+	fromColumn: 'Facturación'.'Cliente id'
+	toColumn: Cliente.'Cliente id'
+
+relationship 'Facturación a Sprint'
+	fromColumn: 'Facturación'.'Sprint id'
+	toColumn: Sprint.Sprint
