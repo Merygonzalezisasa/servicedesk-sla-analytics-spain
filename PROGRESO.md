@@ -1,7 +1,7 @@
 # Progreso — Brújula Soporte IT · Service Desk SLA Analytics
 
 ## Estado actual
-**Fase:** 2 (SQL) · **Paso:** 3 de 4 · **Última sesión:** 2026-10-16
+**Fase:** 2 (SQL) · **Paso:** 4 de 4 · **Última sesión:** 2026-10-19
 
 ## Bitácora
 ### Fase 0 — Decidir ✅ (2026-10-15)
@@ -250,7 +250,7 @@ CHECKs (la base rechaza lo que no cumple las reglas del negocio).
         iguales entre sus incumplidos → departamento; regla de atribución, hay alternativas).
         La estudiante lo reformula bien: "más importe por más volumen, aunque su % es el más bajo".
   - [x] Ejecución de la estudiante (tabla de 6 vistas; psql pagina → -P pager=off) + commit `ef2fee3`.
-- [ ] Paso 3 — `03_stored_procedures.sql`  ← ACÁ VOY
+- [x] Paso 3 — `03_stored_procedures.sql`
   - [x] sp_calcular_facturacion_sprint(sprint, forzar): congela v_cumplimiento_sprint en
         fact_facturacion_sprint (todos los clientes con contrato; sin tickets = neutro, 0 €); no rehace un
         sprint ya facturado salvo p_forzar; valida que exista y esté completo. sp_calcular_facturacion_anio.
@@ -268,8 +268,16 @@ CHECKs (la base rechaza lo que no cumple las reglas del negocio).
   - [x] Pregunta de control (¿por qué no recalcular un sprint facturado?): muy bien, desde su experiencia
         (facturación anual): una cifra facturada debe estar cerrada; solo se rectifica si hay error.
         Añadido: p_forzar = rectificación consciente; calculado_en deja rastro; en real, guardar versiones.
-  - [ ] Commit.
-- [ ] Paso 4 — `04_sample_queries.sql`
+  - [x] Commit `a368bff` subido.
+- [ ] Paso 4 — `04_sample_queries.sql`  ← ACÁ VOY
+  - [x] 11 consultas comentadas (pregunta + lectura con cifras) para las 6 preguntas: P1a cumplimiento
+        tipo × prioridad × nivel; P1b clientes bajo objetivo (34 cliente-año; 7/8 Gold en 2025); P1c al
+        borde < 1 punto (Gold 17,9 % de sprints); P2a balance (−287.037 €, −2,59 % de 11,08 M€); P2b Pareto;
+        P2c punto ciego P1 (pequeño: 1/8 Gold, 2/13 Silver); P3a post-festivo 67,8 vs 55,5 lunes;
+        P3b calor dentro de jul-ago 0,91 vs 0,39 con ausencias iguales; P4 agosto ~2 tickets/agente,
+        79–83 %; P5 backlog por % SLA consumido; P6 perfiles por cuartiles (dinero en Gold "buen servicio").
+  - [x] Todas probadas. Corregidas 2 lecturas que no cuadraban con los datos (P6 y P2c).
+  - [ ] Ejecución de la estudiante + pregunta de control + commit → cierre de la Fase 2.
 
 ## Dudas abiertas
 - Tiempos concretos de la matriz SLA y de los tramos: abiertos a ajuste antes de la Fase 1.
