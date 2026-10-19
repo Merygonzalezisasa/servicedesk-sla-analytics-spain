@@ -187,7 +187,7 @@
         alarma de humo. Respuesta bien: "para confirmar que el verificador está encendido". Matiz:
         y que cada comprobación detecta lo que dice detectar (probar que una prueba puede fallar).
   - [x] Checkpoint de la estudiante: termina con "CARGA VERIFICADA".
-  - [ ] Commit de cierre de la Fase 1.
+  - [x] Commit de cierre de la Fase 1: `cbfb674`.
 
 - [x] Proyecto movido fuera de OneDrive a `C:\Proyectos\servicedesk-sla-analytics-spain`
       (3 archivos, hash verificado). La estudiante tiene cuenta de GitHub.
@@ -213,8 +213,21 @@ CHECKs (la base rechaza lo que no cumple las reglas del negocio).
         ("~20 % más rápido" → "tarda ~18 % menos": factores 0,90 vs 1,10).
   - [x] Pregunta de control (¿fact_ticket antes que dim_cliente?): bien. Matiz: falla siempre (FK)
         y la transacción deshace todo el script.
-  - [ ] Pendiente: ¿añadir a la FICHA el efecto senior/junior como efecto secundario inyectado?
-  - [ ] Ejecución de la estudiante (+ prueba del UPDATE rechazado) + commit.
+  - [x] Efecto senior/junior en la FICHA: la estudiante decide que NO (se verá en Power BI).
+        ⚠ Fase 4: si sale que los senior cumplen más, es un efecto inyectado (factor 0,90 vs 1,10),
+        no un hallazgo; decirlo así en insights.
+  - [x] Incidencia en la ejecución de la estudiante: ERROR agente_ausencia_motivo_check con
+        'baja médica'. Causa: psql en PowerShell usa WIN1252 y leyó mal las tildes del .sql (UTF-8),
+        así que el CHECK quedó como 'baja mÃ©dica'. Arreglo: `\encoding UTF8` al inicio del script.
+        Reproducido y verificado con ambas codificaciones. La transacción deshizo todo (base intacta).
+  - [x] Ejecución de la estudiante (tras el arreglo): todos los INSERT OK + COMMIT. Las tildes salen
+        mal en su consola (solo visual). psql pagina la salida ("-- Más --": espacio / q).
+  - [x] Prueba del UPDATE rechazado (INC-P1 → Petición): ERROR 23514, la base lo rechaza.
+        Pregunta de control (¿qué regla te protegió?): mal — dijo "nomenclatura del código INC-P1".
+        Era "P1 solo existe para incidencias" (§0.2); se le explicó leyendo la fila que falla.
+        Mejora: las 3 reglas de dim_sla tienen nombre (p1_solo_incidencias, p1_reloj_24x7,
+        tareas_no_facturan) → el error ya dice qué regla se rompió.
+  - [ ] Commit del Paso 1.
 - [ ] Paso 2 — `02_create_views.sql`
 - [ ] Paso 3 — `03_stored_procedures.sql`
 - [ ] Paso 4 — `04_sample_queries.sql`
