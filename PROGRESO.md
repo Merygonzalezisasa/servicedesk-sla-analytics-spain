@@ -1,7 +1,7 @@
 # Progreso — Brújula Soporte IT · Service Desk SLA Analytics
 
 ## Estado actual
-**Fase:** 2 (SQL) · **Paso:** 1 de 4 · **Última sesión:** 2026-10-16
+**Fase:** 2 (SQL) · **Paso:** 2 de 4 · **Última sesión:** 2026-10-16
 
 ## Bitácora
 ### Fase 0 — Decidir ✅ (2026-10-15)
@@ -201,7 +201,7 @@
 Plan (Parte 5 de la plantilla): 4 archivos en 02_sql/, uno por uno; la estudiante los ejecuta en su base.
 Decisión: `raw` = zona de aterrizaje (acepta lo que traen los CSV); `servicedesk` = modelo con FKs y
 CHECKs (la base rechaza lo que no cumple las reglas del negocio).
-- [ ] Paso 1 — `01_create_schema.sql`  ← ACÁ VOY
+- [x] Paso 1 — `01_create_schema.sql`
   - [x] Esquema estrella `servicedesk`: 9 dimensiones/tablas puente + fact_ticket, fact_ticket_estado y
         fact_facturacion_sprint (vacía, la llena el SP). PKs, FKs, ~40 CHECKs (P1 solo incidencias,
         regla de las dos fechas, orden de fechas, tramos con signo correcto…), 15 índices, comentarios.
@@ -227,8 +227,29 @@ CHECKs (la base rechaza lo que no cumple las reglas del negocio).
         Era "P1 solo existe para incidencias" (§0.2); se le explicó leyendo la fila que falla.
         Mejora: las 3 reglas de dim_sla tienen nombre (p1_solo_incidencias, p1_reloj_24x7,
         tareas_no_facturan) → el error ya dice qué regla se rompió.
-  - [ ] Commit del Paso 1.
-- [ ] Paso 2 — `02_create_views.sql`
+  - [x] Commit `ca6a805` subido.
+- [ ] Paso 2 — `02_create_views.sql`  ← ACÁ VOY
+  - [x] 6 vistas: v_ticket_enriquecido (25.300), v_kpis_diarios (733: entradas, salidas, backlog,
+        cumplimiento por día de medición, festivos, clima, % agentes ausentes), v_cumplimiento_sprint
+        (1.235 cliente × sprint, EN VIVO: %, tramo, €, puntos sobre el tramo inferior, P1 incumplidos),
+        v_liquidacion_anual (OFICIAL, lee fact_facturacion_sprint → vacía hasta el SP), 
+        v_pareto_penalizacion (dep × tipo, reparto de la penalización entre incumplidos, ABC),
+        v_perfil_cliente (40, para clustering).
+  - [x] Cuadre con Python: balance −133.003 € (2024) / −154.034 € (2025) idéntico; backlog final 143.
+        Todas las vistas < 25 ms (DoD: < 2 s).
+  - [ ] Hallazgo para la Fase 4: el Pareto pone a Service Desk N1 primero (36 % de la penalización)
+        aunque es el que mejor cumple (95,7 %) → efecto volumen; tasa ≠ importe.
+  - [x] Explicado a petición: para qué sirven las vistas (una sola definición de cada cifra,
+        simplificar a Power BI, siempre al día, aislar el modelo; analogía de las recetas).
+  - [x] Pregunta de control (¿por qué N1 lidera la penalización si cumple mejor?): planteó 3 hipótesis
+        (tickets con impacto, vacaciones, tendencia), ninguna la principal. Explicado: efecto volumen
+        (N1: 14.389 medidos, 624 incumplidos vs Desarrollo 708 / 263) → tasa ≠ importe.
+        Sus hipótesis quedan como preguntas para la Fase 4 (¿N1 empeora más en agosto?).
+        Aclarado después: el 36 % es de la penalización total (361.484 €, todos los clientes, 2 años;
+        balance −287.037 = −361.484 + 74.447 de bonus) y cómo se reparte (cliente × sprint → a partes
+        iguales entre sus incumplidos → departamento; regla de atribución, hay alternativas).
+        La estudiante lo reformula bien: "más importe por más volumen, aunque su % es el más bajo".
+  - [ ] Ejecución de la estudiante + commit.
 - [ ] Paso 3 — `03_stored_procedures.sql`
 - [ ] Paso 4 — `04_sample_queries.sql`
 
