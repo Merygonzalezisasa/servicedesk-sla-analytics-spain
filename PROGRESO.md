@@ -1,7 +1,7 @@
 # Progreso — Brújula Soporte IT · Service Desk SLA Analytics
 
 ## Estado actual
-**Fase:** 2 (SQL) · **Paso:** 2 de 4 · **Última sesión:** 2026-10-16
+**Fase:** 2 (SQL) · **Paso:** 3 de 4 · **Última sesión:** 2026-10-16
 
 ## Bitácora
 ### Fase 0 — Decidir ✅ (2026-10-15)
@@ -228,7 +228,7 @@ CHECKs (la base rechaza lo que no cumple las reglas del negocio).
         Mejora: las 3 reglas de dim_sla tienen nombre (p1_solo_incidencias, p1_reloj_24x7,
         tareas_no_facturan) → el error ya dice qué regla se rompió.
   - [x] Commit `ca6a805` subido.
-- [ ] Paso 2 — `02_create_views.sql`  ← ACÁ VOY
+- [x] Paso 2 — `02_create_views.sql`
   - [x] 6 vistas: v_ticket_enriquecido (25.300), v_kpis_diarios (733: entradas, salidas, backlog,
         cumplimiento por día de medición, festivos, clima, % agentes ausentes), v_cumplimiento_sprint
         (1.235 cliente × sprint, EN VIVO: %, tramo, €, puntos sobre el tramo inferior, P1 incumplidos),
@@ -249,8 +249,26 @@ CHECKs (la base rechaza lo que no cumple las reglas del negocio).
         balance −287.037 = −361.484 + 74.447 de bonus) y cómo se reparte (cliente × sprint → a partes
         iguales entre sus incumplidos → departamento; regla de atribución, hay alternativas).
         La estudiante lo reformula bien: "más importe por más volumen, aunque su % es el más bajo".
-  - [ ] Ejecución de la estudiante + commit.
-- [ ] Paso 3 — `03_stored_procedures.sql`
+  - [x] Ejecución de la estudiante (tabla de 6 vistas; psql pagina → -P pager=off) + commit `ef2fee3`.
+- [ ] Paso 3 — `03_stored_procedures.sql`  ← ACÁ VOY
+  - [x] sp_calcular_facturacion_sprint(sprint, forzar): congela v_cumplimiento_sprint en
+        fact_facturacion_sprint (todos los clientes con contrato; sin tickets = neutro, 0 €); no rehace un
+        sprint ya facturado salvo p_forzar; valida que exista y esté completo. sp_calcular_facturacion_anio.
+        fn_reporte_sprint (13 indicadores, € oficiales o provisionales). sp_refrescar_contexto (upsert clima).
+  - [x] Probado: antes 0 filas en v_liquidacion_anual; después 2024 −133.003 € / 2025 −154.034 € (=Python).
+        2ª llamada no recalcula; sprint inexistente → error claro. Peores sprints: agosto y Navidad.
+        Tabla vaciada (TRUNCATE) para que la estudiante haga el antes/después.
+  - [x] Incidencia de la estudiante en pgAdmin: ERROR 42P01 "no existe la relación dim_sprint". Causa:
+        las rutinas usan nombres sin esquema y pgAdmin busca en public. Arreglo: cada rutina fija
+        `SET search_path = servicedesk, public`. Probado con search_path = public. Tabla vaciada otra vez.
+  - [x] Demostración de la estudiante en pgAdmin: la pestaña antigua seguía fallando (sesión con error
+        previo) → en un Query Tool nuevo, OK: "ya facturado, no se recalcula", años 2024 y 2025
+        facturados, fn_reporte_sprint('2024-11') con 13 indicadores. El árbol de pgAdmin necesita
+        Refresh para ver funciones/procedimientos creados desde psql.
+  - [x] Pregunta de control (¿por qué no recalcular un sprint facturado?): muy bien, desde su experiencia
+        (facturación anual): una cifra facturada debe estar cerrada; solo se rectifica si hay error.
+        Añadido: p_forzar = rectificación consciente; calculado_en deja rastro; en real, guardar versiones.
+  - [ ] Commit.
 - [ ] Paso 4 — `04_sample_queries.sql`
 
 ## Dudas abiertas
