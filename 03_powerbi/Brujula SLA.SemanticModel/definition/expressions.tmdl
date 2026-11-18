@@ -1,5 +1,8 @@
 /// Servidor PostgreSQL (host:puerto)
 expression Servidor = "localhost:5432" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: f164a303-eae1-462f-86b4-dcc656b9d5d8
 
 /// Base de datos del proyecto
 expression 'Base de datos' = "servicedesk_sla" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 59e3c6fb-8924-40eb-8e54-a96127d4b082
+

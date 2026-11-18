@@ -1,13 +1,13 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
   "name": "6754ddf224654a03809e",
   "position": {
     "x": 28,
-    "y": 340,
-    "z": 600,
-    "width": 224,
+    "y": 434,
+    "z": 5000,
     "height": 80,
-    "tabOrder": 600
+    "width": 224,
+    "tabOrder": 5000
   },
   "visual": {
     "visualType": "slicer",
@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "Cliente.Cliente",
-              "nativeQueryRef": "Cliente"
+              "nativeQueryRef": "Cliente",
+              "active": true
             }
           ]
         }
@@ -75,7 +76,7 @@
             "show": {
               "expr": {
                 "Literal": {
-                  "Value": "true"
+                  "Value": "false"
                 }
               }
             },
@@ -133,7 +134,25 @@
             }
           }
         }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
       ]
+    },
+    "syncGroup": {
+      "groupName": "cliente",
+      "fieldChanges": true,
+      "filterChanges": true
     }
   }
 }

@@ -1,60 +1,80 @@
 /// Empresas cliente ficticias (40) con su nivel de contrato.
 table Cliente
+	lineageTag: 48c5b25c-f440-4204-b74d-6025eb1458ac
 
 	column 'Cliente id'
 		dataType: string
 		isHidden
+		isKey
+		lineageTag: b4a87ae4-46bf-4376-837a-6981aa958694
 		summarizeBy: none
 		sourceColumn: cliente_id
-		isKey
+
 	/// Nombre ficticio de la empresa cliente
 	column Cliente
 		dataType: string
+		lineageTag: ab921acd-061d-4250-8af7-2d86ac0aeff1
 		summarizeBy: none
 		sourceColumn: cliente
+
 	column Sector
 		dataType: string
+		lineageTag: 754b844e-9c84-433c-9085-8632ece2f188
 		summarizeBy: none
 		sourceColumn: sector
+
 	column 'Comunidad autónoma'
 		dataType: string
+		lineageTag: 103229bb-769c-41cd-894c-4f314bde0e02
+		dataCategory: StateOrProvince
 		summarizeBy: none
 		sourceColumn: comunidad_autonoma
-		dataCategory: StateOrProvince
+
 	column 'Orden nivel'
 		dataType: int64
 		isHidden
+		lineageTag: 4646479b-cf63-4e7f-a6c6-732b510ea91a
 		summarizeBy: none
 		sourceColumn: orden_nivel
+
 	/// Gold, Silver o Bronze
 	column 'Nivel de contrato'
 		dataType: string
+		lineageTag: 8253f431-5683-48bc-8424-bb0799760cc5
 		summarizeBy: none
 		sourceColumn: nivel_contrato
 		sortByColumn: 'Orden nivel'
+
 	/// Gold 95 %, Silver 90 %, Bronze 85 %
 	column 'Objetivo contractual'
 		dataType: decimal
 		formatString: 0%
+		lineageTag: 1506c6c5-5c96-4ffb-aa10-f96f4b3c98af
 		summarizeBy: none
 		sourceColumn: objetivo_contractual
+
 	column 'Contrato y objetivo'
 		dataType: string
+		lineageTag: a1d0c60c-9468-497c-b288-e009cc7f9b60
 		summarizeBy: none
 		sourceColumn: contrato_objetivo
+
 	column 'Cuota anual'
 		dataType: decimal
-		formatString: #,##0 €
 		isHidden
+		formatString: #,##0 €
+		lineageTag: edec4ccb-b81b-458f-9b3f-59a06005cc73
 		summarizeBy: none
 		sourceColumn: cuota_anual_eur
+
 	column 'Fecha de alta'
 		dataType: dateTime
 		formatString: dd/mm/yyyy
+		lineageTag: 20ec785e-9344-4e73-a45c-7c16c05f077c
 		summarizeBy: none
 		sourceColumn: fecha_alta
 
-	partition 'Cliente' = m
+	partition Cliente = m
 		mode: import
 		source =
 				let
@@ -72,3 +92,4 @@ table Cliente
 						{"cuota_anual_eur", Currency.Type}, {"fecha_alta", type date}})
 				in
 					#"Cambiados tipos"
+

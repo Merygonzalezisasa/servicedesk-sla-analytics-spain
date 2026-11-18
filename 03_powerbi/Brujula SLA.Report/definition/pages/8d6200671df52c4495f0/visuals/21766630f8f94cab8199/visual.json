@@ -1,13 +1,13 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
   "name": "21766630f8f94cab8199",
   "position": {
     "x": 28,
-    "y": 248,
-    "z": 500,
-    "width": 224,
+    "y": 342,
+    "z": 4000,
     "height": 80,
-    "tabOrder": 500
+    "width": 224,
+    "tabOrder": 4000
   },
   "visual": {
     "visualType": "slicer",
@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "Cliente.Nivel de contrato",
-              "nativeQueryRef": "Nivel de contrato"
+              "nativeQueryRef": "Nivel de contrato",
+              "active": true
             }
           ]
         }
@@ -75,7 +76,7 @@
             "show": {
               "expr": {
                 "Literal": {
-                  "Value": "true"
+                  "Value": "false"
                 }
               }
             },
@@ -133,7 +134,25 @@
             }
           }
         }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
       ]
+    },
+    "syncGroup": {
+      "groupName": "nivel",
+      "fieldChanges": true,
+      "filterChanges": true
     }
   }
 }

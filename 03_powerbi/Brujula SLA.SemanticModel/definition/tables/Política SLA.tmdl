@@ -1,25 +1,33 @@
 /// Matriz de SLA tipo × prioridad (Ficha §0.2).
 table 'Política SLA'
+	lineageTag: 69e26178-6bc6-431f-9d84-d123eba196e2
 
 	column 'SLA id'
 		dataType: string
 		isHidden
+		isKey
+		lineageTag: c96af953-9e08-4654-b560-6d1123bbba06
 		summarizeBy: none
 		sourceColumn: sla_id
-		isKey
+
 	/// Incidencia, Petición o Tarea
 	column Tipo
 		dataType: string
+		lineageTag: 6af603fe-9bcd-4517-9a34-a8240e403bdd
 		summarizeBy: none
 		sourceColumn: tipo
+
 	/// P1 (crítica) a P4 (baja)
 	column Prioridad
 		dataType: string
+		lineageTag: d2f0e7a9-04c0-43de-8579-53c10b6aa8c7
 		summarizeBy: none
 		sourceColumn: prioridad
+
 	/// 24x7 (P1) o laboral L–V 9–18 sin festivos de Madrid
 	column Reloj
 		dataType: string
+		lineageTag: 7b5fd42b-4488-44bb-8ea5-59c3a8144adc
 		summarizeBy: none
 		sourceColumn: reloj
 
@@ -32,3 +40,4 @@ table 'Política SLA'
 					#"Seleccionadas columnas" = Table.SelectColumns(Tabla, {"sla_id", "tipo", "prioridad", "reloj"})
 				in
 					#"Seleccionadas columnas"
+

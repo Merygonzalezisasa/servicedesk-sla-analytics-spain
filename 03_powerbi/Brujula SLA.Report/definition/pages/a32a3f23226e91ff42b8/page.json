@@ -1,0 +1,101 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "a32a3f23226e91ff42b8",
+  "displayName": "Riesgo por cliente",
+  "displayOption": "FitToPage",
+  "height": 1080,
+  "width": 1920,
+  "objects": {
+    "background": [
+      {
+        "properties": {
+          "color": {
+            "solid": {
+              "color": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'#F4F6F9'"
+                  }
+                }
+              }
+            }
+          },
+          "transparency": {
+            "expr": {
+              "Literal": {
+                "Value": "0.0D"
+              }
+            }
+          },
+          "image": {
+            "image": {
+              "name": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'cinta_alerta.svg'"
+                  }
+                }
+              },
+              "url": {
+                "expr": {
+                  "ResourcePackageItem": {
+                    "PackageName": "RegisteredResources",
+                    "PackageType": 1,
+                    "ItemName": "cinta_alerta.svg"
+                  }
+                }
+              },
+              "scaling": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'Fit'"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    "outspace": [
+      {
+        "properties": {
+          "color": {
+            "solid": {
+              "color": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'#FFFFFF'"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "visibility": "HiddenInViewMode",
+  "visualInteractions": [
+    {
+      "source": "24875aa60fe4830e3f31",
+      "target": "882ec424662b3d83bd3d",
+      "type": "NoFilter"
+    },
+    {
+      "source": "24875aa60fe4830e3f31",
+      "target": "339946f0f75396117c9d",
+      "type": "NoFilter"
+    },
+    {
+      "source": "784a420ed50c869949b5",
+      "target": "882ec424662b3d83bd3d",
+      "type": "NoFilter"
+    },
+    {
+      "source": "784a420ed50c869949b5",
+      "target": "339946f0f75396117c9d",
+      "type": "NoFilter"
+    }
+  ]
+}

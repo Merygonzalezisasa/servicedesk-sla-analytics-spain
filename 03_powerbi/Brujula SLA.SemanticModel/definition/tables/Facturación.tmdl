@@ -1,111 +1,73 @@
 /// Facturación OFICIAL por cliente y sprint (la congela sp_calcular_facturacion_sprint). Grano: cliente × sprint.
-table 'Facturación'
-
-	/// Cuota de los sprints facturados (cuota anual ÷ nº de sprints del año).
-	measure 'Cuota facturada €' = SUM(Facturación[Cuota sprint])
-		formatString: #,##0 €
-		displayFolder: Facturación
-
-	/// Bonificaciones ganadas por superar el tramo de bonus.
-	measure 'Bonus €' = COALESCE(CALCULATE(SUM(Facturación[Ajuste]), Facturación[Ajuste] > 0), 0)
-		formatString: #,##0 €
-		displayFolder: Facturación
-
-	/// Penalizaciones (en positivo) por caer en tramo deficiente.
-	measure 'Penalización €' = COALESCE(-CALCULATE(SUM(Facturación[Ajuste]), Facturación[Ajuste] < 0), 0)
-		formatString: #,##0 €
-		displayFolder: Facturación
-
-	/// Bonus − penalización.
-	measure 'Balance €' = COALESCE(SUM(Facturación[Ajuste]), 0)
-		formatString: #,##0 €
-		displayFolder: Facturación
-
-	/// Balance ÷ nº de sprints del periodo: comparable entre un sprint y varios.
-	measure 'Balance medio por sprint €' = DIVIDE([Balance €], DISTINCTCOUNT(Facturación[Sprint id]))
-		formatString: #,##0 €
-		displayFolder: Facturación
-
-	/// Parte de la cuota que se pierde en penalizaciones (créditos de servicio).
-	measure '% Penalización sobre cuota' = DIVIDE([Penalización €], [Cuota facturada €])
-		formatString: 0.00%
-		displayFolder: Facturación
-
-	/// Nº de combinaciones cliente × sprint en tramo deficiente.
-	measure 'Cliente-sprints deficientes' = COALESCE(CALCULATE(COUNTROWS(Facturación), Facturación[Tramo] = "deficiente"), 0)
-		formatString: #,##0
-		displayFolder: Facturación
-
-	/// Clientes en tramo deficiente por sprint (media si hay varios sprints).
-	measure 'Clientes en tramo deficiente' = DIVIDE([Cliente-sprints deficientes], DISTINCTCOUNT(Facturación[Sprint id]))
-		formatString: #,##0.0
-		displayFolder: Facturación
-
-	/// Cuota de los cliente-sprints que quedaron a menos de 1 punto de caer al tramo inferior ÷ cuota total.
-	measure '% Ingresos en riesgo' = ```
-			DIVIDE(
-				CALCULATE(
-					[Cuota facturada €],
-					Facturación[Puntos sobre tramo inferior] < 1,
-					Facturación[Tramo] <> "deficiente",
-					NOT ISBLANK(Facturación[% cumplimiento]),
-					Facturación[% cumplimiento] < 100
-				),
-				[Cuota facturada €]
-			) + 0
-			```
-		formatString: 0.0%
-		displayFolder: Facturación
+table Facturación
+	lineageTag: 2b2af1c4-08cb-457f-9755-5b7ccb9598c0
 
 	column 'Cliente id'
 		dataType: string
 		isHidden
+		lineageTag: 3971b9e6-0d13-48ef-bd8a-b491d7a8e716
 		summarizeBy: none
 		sourceColumn: cliente_id
+
 	column 'Sprint id'
 		dataType: string
 		isHidden
+		lineageTag: 7601cd00-f248-43f7-bbb4-a641d983de30
 		summarizeBy: none
 		sourceColumn: sprint_id
+
 	column 'Cuota sprint'
 		dataType: decimal
-		formatString: #,##0 €
 		isHidden
+		formatString: #,##0 €
+		lineageTag: cd5923fd-bfeb-4f82-8be8-39797e7c3128
 		summarizeBy: none
 		sourceColumn: cuota_sprint_eur
+
 	column 'Tickets computables'
 		dataType: int64
 		isHidden
+		lineageTag: 9cd88bbb-9d82-4532-9ce5-47568e9d8fd0
 		summarizeBy: none
 		sourceColumn: n_tickets_computables
+
 	column 'Tickets cumplidos'
 		dataType: int64
 		isHidden
+		lineageTag: c3e902b4-39c5-45a4-aebb-d9e8c9a687b9
 		summarizeBy: none
 		sourceColumn: n_cumplidos
+
 	column '% cumplimiento'
 		dataType: decimal
 		isHidden
+		lineageTag: 61bbd429-55af-4728-b2b6-823d2874097d
 		summarizeBy: none
 		sourceColumn: pct_cumplimiento
+
 	/// bonus, neutro o deficiente
 	column Tramo
 		dataType: string
+		lineageTag: 5920e627-2581-4074-b7ef-1e4be768db67
 		summarizeBy: none
 		sourceColumn: tipo_tramo
+
 	column Ajuste
 		dataType: decimal
-		formatString: #,##0 €
 		isHidden
+		formatString: #,##0 €
+		lineageTag: 6ebf9e46-c2bd-4061-b5ff-61010d39e8a4
 		summarizeBy: none
 		sourceColumn: ajuste_eur
+
 	column 'Puntos sobre tramo inferior'
 		dataType: decimal
 		isHidden
+		lineageTag: b50fc063-2f59-4459-9cf2-07028bf94c58
 		summarizeBy: none
 		sourceColumn: puntos_sobre_tramo_inferior
 
-	partition 'Facturación' = m
+	partition Facturación = m
 		mode: import
 		source =
 				let
@@ -118,3 +80,4 @@ table 'Facturación'
 						{"puntos_sobre_tramo_inferior", type number}, {"n_tickets_computables", Int64.Type}, {"n_cumplidos", Int64.Type}})
 				in
 					#"Cambiados tipos"
+

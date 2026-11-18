@@ -155,10 +155,13 @@ SELECT b.cliente_id, c.nombre AS cliente, c.nivel_contrato,
        b.n_tickets_computables - b.n_cumplidos                            AS n_incumplidos,
        b.n_p1, b.n_p1_incumplidos,
        round(100.0 * b.n_cumplidos / b.n_tickets_computables, 2)          AS pct_cumplimiento,
-       tr.tramo_id, tr.tipo AS tipo_tramo, tr.pct_ajuste,
-       round(c.cuota_anual_eur / sp.n_sprints_anio * tr.pct_ajuste / 100, 2) AS ajuste_eur,
+       -- Tope del contrato (Ficha §0.3): en cada cliente × sprint el ajuste aplicado queda entre −3,5 % y +3 %
+       -- de la cuota del sprint. pct_ajuste es el aplicado; pct_ajuste_tramo, el del tramo sin tope.
+       tr.tramo_id, tr.tipo AS tipo_tramo, greatest(least(tr.pct_ajuste, 3.0), -3.5)   AS pct_ajuste,
+       round(c.cuota_anual_eur / sp.n_sprints_anio * greatest(least(tr.pct_ajuste, 3.0), -3.5) / 100, 2) AS ajuste_eur,
        -- margen hasta caer al tramo inferior (pregunta 1: clientes a menos de 1 punto)
-       round(100.0 * b.n_cumplidos / b.n_tickets_computables - tr.pct_desde, 2) AS puntos_sobre_tramo_inferior
+       round(100.0 * b.n_cumplidos / b.n_tickets_computables - tr.pct_desde, 2) AS puntos_sobre_tramo_inferior,
+       tr.pct_ajuste                                                       AS pct_ajuste_tramo
 FROM base b
 JOIN dim_cliente c       USING (cliente_id)
 JOIN dim_sprint sp       USING (sprint_id)
@@ -168,6 +171,8 @@ JOIN dim_tramo_ajuste tr ON tr.nivel_contrato = c.nivel_contrato
 
 COMMENT ON VIEW v_cumplimiento_sprint IS 'Cliente × sprint calculado en vivo: % de cumplimiento, tramo y ajuste en €. Lo oficial se guarda en fact_facturacion_sprint';
 COMMENT ON COLUMN v_cumplimiento_sprint.puntos_sobre_tramo_inferior IS 'Puntos de % que le sobran al cliente antes de caer al tramo de abajo';
+COMMENT ON COLUMN v_cumplimiento_sprint.pct_ajuste IS '% de ajuste aplicado sobre la cuota del sprint, con el tope del contrato (entre -3,5 y +3)';
+COMMENT ON COLUMN v_cumplimiento_sprint.pct_ajuste_tramo IS '% de ajuste que marca el tramo, antes de aplicar el tope';
 
 -- ---------------------------------------------------------------------------------------------
 -- 4. v_liquidacion_anual — lo que se liquida al cliente al cierre del año (oficial)

@@ -1,0 +1,32 @@
+/// Filas de la matriz «Detalle de KPIs por tipo»: Total + tipos de ticket. Sin relaciones, por diseño.
+table 'Tipo detalle'
+	lineageTag: 61780107-3af7-4949-9b16-06e97d99d732
+
+	/// Total, Incidencia, Petición o Tarea
+	column Tipo
+		dataType: string
+		lineageTag: 6a0d0aa2-8616-447b-af46-f5eb316a3e3a
+		summarizeBy: none
+		sourceColumn: Tipo
+		sortByColumn: Orden
+
+	column Orden
+		dataType: int64
+		isHidden
+		lineageTag: 5bf200c8-731b-491f-ba03-dc7603774411
+		summarizeBy: none
+		sourceColumn: Orden
+
+	partition 'Tipo detalle' = m
+		mode: import
+		source =
+				let
+					// Filas de la matriz de detalle: el total del KPI y cada tipo de ticket. Sin relaciones: las medidas
+					// de «Detalle KPI» filtran Política SLA[Tipo] según la fila.
+					Tipos = #table(
+						type table [Orden = Int64.Type, Tipo = text],
+						{{0, "Total"}, {1, "Incidencia"}, {2, "Petición"}, {3, "Tarea"}}
+					)
+				in
+					Tipos
+

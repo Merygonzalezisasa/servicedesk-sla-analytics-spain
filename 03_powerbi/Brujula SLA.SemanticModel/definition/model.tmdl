@@ -1,16 +1,24 @@
 model Model
 	culture: es-ES
 	defaultPowerBIDataSourceVersion: powerBI_V3
-	sourceQueryCulture: es-ES
 	discourageImplicitMeasures
+	sourceQueryCulture: es-ES
 
-	annotation __PBI_TimeIntelligenceEnabled = 0
+annotation __PBI_TimeIntelligenceEnabled = 0
 
-ref table 'Tickets'
-ref table 'Facturación'
-ref table 'Calendario'
-ref table 'Sprint'
-ref table 'Cliente'
-ref table 'Departamento'
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table Tickets
+ref table Facturación
+ref table Calendario
+ref table Sprint
+ref table Cliente
+ref table Departamento
 ref table 'Política SLA'
 ref table 'Objetivos KPI'
+ref table Medidas
+ref table 'Parámetro KPI'
+ref table 'Tipo detalle'
+
+ref cultureInfo es-ES
+

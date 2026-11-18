@@ -1,7 +1,7 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
   "name": "8d6200671df52c4495f0",
-  "displayName": "Cumplimiento de objetivos",
+  "displayName": "Cumplimiento de KPIs",
   "displayOption": "FitToPage",
   "height": 1080,
   "width": 1920,
@@ -14,7 +14,7 @@
               "color": {
                 "expr": {
                   "Literal": {
-                    "Value": "'#EEF1F5'"
+                    "Value": "'#F4F6F9'"
                   }
                 }
               }
@@ -24,6 +24,33 @@
             "expr": {
               "Literal": {
                 "Value": "0.0D"
+              }
+            }
+          },
+          "image": {
+            "image": {
+              "name": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'cinta_objetivo.svg'"
+                  }
+                }
+              },
+              "url": {
+                "expr": {
+                  "ResourcePackageItem": {
+                    "PackageName": "RegisteredResources",
+                    "PackageType": 1,
+                    "ItemName": "cinta_objetivo.svg"
+                  }
+                }
+              },
+              "scaling": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'Fit'"
+                  }
+                }
               }
             }
           }
@@ -38,7 +65,7 @@
               "color": {
                 "expr": {
                   "Literal": {
-                    "Value": "'#EEF1F5'"
+                    "Value": "'#FFFFFF'"
                   }
                 }
               }
@@ -47,5 +74,6 @@
         }
       }
     ]
-  }
+  },
+  "visibility": "HiddenInViewMode"
 }

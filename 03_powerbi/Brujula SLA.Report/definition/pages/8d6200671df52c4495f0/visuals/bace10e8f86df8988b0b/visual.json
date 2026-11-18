@@ -1,13 +1,13 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
   "name": "bace10e8f86df8988b0b",
   "position": {
     "x": 28,
-    "y": 156,
-    "z": 400,
-    "width": 224,
+    "y": 250,
+    "z": 3000,
     "height": 80,
-    "tabOrder": 400
+    "width": 224,
+    "tabOrder": 3000
   },
   "visual": {
     "visualType": "slicer",
@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "Sprint.Sprint",
-              "nativeQueryRef": "Sprint"
+              "nativeQueryRef": "Sprint",
+              "active": true
             }
           ]
         }
@@ -113,7 +114,7 @@
                           [
                             {
                               "Literal": {
-                                "Value": "'2025-17'"
+                                "Value": "'2025-16'"
                               }
                             }
                           ]
@@ -135,7 +136,7 @@
             "show": {
               "expr": {
                 "Literal": {
-                  "Value": "true"
+                  "Value": "false"
                 }
               }
             },
@@ -193,6 +194,19 @@
             }
           }
         }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
       ]
     },
     "syncGroup": {
@@ -200,5 +214,83 @@
       "fieldChanges": true,
       "filterChanges": true
     }
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "1b3466463cde411b00ea",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Sprint"
+              }
+            },
+            "Property": "Sprint"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "s",
+              "Entity": "Sprint",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "Not": {
+                  "Expression": {
+                    "In": {
+                      "Expressions": [
+                        {
+                          "Column": {
+                            "Expression": {
+                              "SourceRef": {
+                                "Source": "s"
+                              }
+                            },
+                            "Property": "Sprint"
+                          }
+                        }
+                      ],
+                      "Values": [
+                        [
+                          {
+                            "Literal": {
+                              "Value": "null"
+                            }
+                          }
+                        ]
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true,
+        "objects": {
+          "general": [
+            {
+              "properties": {
+                "isInvertedSelectionMode": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "true"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
   }
 }

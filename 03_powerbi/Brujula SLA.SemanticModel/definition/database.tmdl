@@ -1,4 +1,3 @@
-database 'Brujula SLA'
+database
 	compatibilityLevel: 1702
-	compatibilityMode: powerBI
-	language: 3082
+

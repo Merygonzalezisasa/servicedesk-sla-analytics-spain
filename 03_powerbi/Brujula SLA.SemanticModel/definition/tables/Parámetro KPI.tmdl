@@ -1,0 +1,45 @@
+/// Botones de navegación por bloque de KPI (página Detalle de KPIs por tipo). Filtra Objetivos KPI.
+table 'Parámetro KPI'
+	lineageTag: f279ee1d-2e97-420b-ac14-f444db71877f
+
+	/// Bloque de Objetivos KPI que filtra el botón
+	column Bloque
+		dataType: string
+		isHidden
+		lineageTag: ac3e528f-8910-47a6-8937-d72239fa6b61
+		summarizeBy: none
+		sourceColumn: Bloque
+		sortByColumn: Orden
+
+	column Orden
+		dataType: int64
+		isHidden
+		lineageTag: f1d86205-96bb-4da4-9607-e7f5bcc60408
+		summarizeBy: none
+		sourceColumn: Orden
+
+	/// Texto de cada botón
+	column Botón
+		dataType: string
+		lineageTag: e914a468-927e-4a18-b4c3-fd266c973d3e
+		summarizeBy: none
+		sourceColumn: Botón
+		sortByColumn: Orden
+
+	partition 'Parámetro KPI' = m
+		mode: import
+		source =
+				let
+					// Un botón por bloque del cuadro de objetivos. El texto del botón se puede cambiar sin tocar Objetivos KPI.
+					Parametro = #table(
+						type table [Bloque = text, Orden = Int64.Type, #"Botón" = text],
+						{
+							{"KPI TICKETS", 1, "KPI Tickets"},
+							{"SLA", 2, "SLA"},
+							{"NEGOCIO", 3, "Negocio"},
+							{"OPERACIÓN", 4, "Operación"}
+						}
+					)
+				in
+					Parametro
+

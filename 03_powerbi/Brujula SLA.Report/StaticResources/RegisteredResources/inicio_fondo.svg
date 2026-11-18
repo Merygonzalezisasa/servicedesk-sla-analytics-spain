@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" font-family="Segoe UI, Segoe UI Semibold, sans-serif">
+<defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#16314F"/><stop offset="0.55" stop-color="#1F3A5F"/><stop offset="1" stop-color="#2E5C8A"/></linearGradient><linearGradient id="gi" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#2E5C8A"/><stop offset="1" stop-color="#16314F"/></linearGradient><filter id="s" x="-10%" y="-10%" width="120%" height="125%"><feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#1F3A5F" flood-opacity="0.10"/></filter><clipPath id="ct"><rect width="328" height="470" rx="14"/></clipPath></defs>
+<rect width="1920" height="1080" fill="#F4F6F9"/>
+<rect width="1920" height="200" fill="url(#g)"/>
+<polygon points="1330,200 1460,0 1530,0 1400,200" fill="#FFF" opacity="0.06"/>
+<polygon points="1480,200 1610,0 1720,0 1590,200" fill="#FFF" opacity="0.08"/>
+<polygon points="1690,200 1820,0 1890,0 1760,200" fill="#FFF" opacity="0.06"/>
+<g transform="translate(130,100)"><circle r="54" fill="none" stroke="#FFF" stroke-width="4"/><polygon points="0,-40 13,0 0,40 -13,0" fill="none" stroke="#FFF" stroke-width="3.5" stroke-linejoin="round"/><polygon points="0,-40 13,0 -13,0" fill="#FFF"/><circle r="5" fill="#1F3A5F"/></g>
+<line x1="226" y1="52" x2="226" y2="148" stroke="#FFF" stroke-opacity="0.5" stroke-width="2.5"/>
+<text x="266" y="116" fill="#FFF" font-size="42" font-weight="700" letter-spacing="1.5">BRÚJULA SOPORTE IT · SERVICE DESK</text>
+<g transform="translate(72,390)"><rect width="328" height="470" rx="14" fill="#FFF" stroke="#D5DAE1" filter="url(#s)"/><rect width="328" height="8" fill="#1F3A5F" clip-path="url(#ct)"/><g transform="translate(76,104)"><circle r="44" fill="url(#gi)"/><g transform="scale(2.4)"><circle r="9" fill="none" stroke="#FFF" stroke-width="1.8"/><polyline points="-4.5,0 -1,3.5 5,-3.5" fill="none" stroke="#FFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g></g>
+<text x="32" y="210" fill="#1B1F24" font-size="27" font-weight="700">Cumplimiento</text>
+<text x="32" y="246" fill="#1B1F24" font-size="27" font-weight="700">de KPI</text>
+<text x="32" y="300" fill="#5A6270" font-size="19">Grado de cumplimiento de</text>
+<text x="32" y="330" fill="#5A6270" font-size="19">los 15 indicadores del</text>
+<text x="32" y="360" fill="#5A6270" font-size="19">servicio.</text>
+<text x="32" y="430" fill="#1F3A5F" font-size="20" font-weight="700">Abrir  →</text></g>
+<g transform="translate(434,390)"><rect width="328" height="470" rx="14" fill="#FFF" stroke="#D5DAE1" filter="url(#s)"/><rect width="328" height="8" fill="#1F3A5F" clip-path="url(#ct)"/><g transform="translate(76,104)"><circle r="44" fill="url(#gi)"/><g transform="scale(2.4)"><g stroke="#FFF" stroke-width="2" stroke-linecap="round"><line x1="-3" y1="-6" x2="8" y2="-6"/><line x1="-3" y1="0" x2="8" y2="0"/><line x1="-3" y1="6" x2="8" y2="6"/></g><g fill="#FFF"><circle cx="-7.5" cy="-6" r="1.8"/><circle cx="-7.5" cy="0" r="1.8"/><circle cx="-7.5" cy="6" r="1.8"/></g></g></g>
+<text x="32" y="210" fill="#1B1F24" font-size="27" font-weight="700">Detalle de</text>
+<text x="32" y="246" fill="#1B1F24" font-size="27" font-weight="700">indicadores</text>
+<text x="32" y="300" fill="#5A6270" font-size="19">Desglose de resultados</text>
+<text x="32" y="330" fill="#5A6270" font-size="19">por tipología de</text>
+<text x="32" y="360" fill="#5A6270" font-size="19">indicador.</text>
+<text x="32" y="430" fill="#1F3A5F" font-size="20" font-weight="700">Abrir  →</text></g>
+<g transform="translate(796,390)"><rect width="328" height="470" rx="14" fill="#FFF" stroke="#D5DAE1" filter="url(#s)"/><rect width="328" height="8" fill="#1F3A5F" clip-path="url(#ct)"/><g transform="translate(76,104)"><circle r="44" fill="url(#gi)"/><g transform="scale(2.4)"><polyline points="-11,-11 -11,10 11,10" fill="none" stroke="#FFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.75"/><polyline points="-6,4 -1,-1 3,2 9,-7" fill="none" stroke="#FFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><g fill="#FFF"><circle cx="-6" cy="4" r="2"/><circle cx="-1" cy="-1" r="2"/><circle cx="3" cy="2" r="2"/><circle cx="9" cy="-7" r="2"/></g></g></g>
+<text x="32" y="210" fill="#1B1F24" font-size="27" font-weight="700">Evolución del</text>
+<text x="32" y="246" fill="#1B1F24" font-size="27" font-weight="700">cumplimiento</text>
+<text x="32" y="300" fill="#5A6270" font-size="19">Tendencia del</text>
+<text x="32" y="330" fill="#5A6270" font-size="19">cumplimiento a lo largo</text>
+<text x="32" y="360" fill="#5A6270" font-size="19">de los sprints.</text>
+<text x="32" y="430" fill="#1F3A5F" font-size="20" font-weight="700">Abrir  →</text></g>
+<g transform="translate(1158,390)"><rect width="328" height="470" rx="14" fill="#FFF" stroke="#D5DAE1" filter="url(#s)"/><rect width="328" height="8" fill="#1F3A5F" clip-path="url(#ct)"/><g transform="translate(76,104)"><circle r="44" fill="url(#gi)"/><g transform="scale(2.4)"><text y="6.5" text-anchor="middle" fill="#FFF" font-size="19" font-weight="700">€</text></g></g>
+<text x="32" y="210" fill="#1B1F24" font-size="27" font-weight="700">Resultado</text>
+<text x="32" y="246" fill="#1B1F24" font-size="27" font-weight="700">económico del sprint</text>
+<text x="32" y="300" fill="#5A6270" font-size="19">Facturación,</text>
+<text x="32" y="330" fill="#5A6270" font-size="19">bonificaciones,</text>
+<text x="32" y="360" fill="#5A6270" font-size="19">penalizaciones y</text>
+<text x="32" y="390" fill="#5A6270" font-size="19">balance neto.</text>
+<text x="32" y="430" fill="#1F3A5F" font-size="20" font-weight="700">Abrir  →</text></g>
+<g transform="translate(1520,390)"><rect width="328" height="470" rx="14" fill="#FFF" stroke="#D5DAE1" filter="url(#s)"/><rect width="328" height="8" fill="#1F3A5F" clip-path="url(#ct)"/><g transform="translate(76,104)"><circle r="44" fill="url(#gi)"/><g transform="scale(2.4)"><g fill="#FFF"><rect x="-9" y="1" width="4" height="7" rx="1"/><rect x="-2" y="-4" width="4" height="12" rx="1"/><rect x="5" y="-9" width="4" height="17" rx="1"/></g></g></g>
+<text x="32" y="210" fill="#1B1F24" font-size="27" font-weight="700">Impacto económico</text>
+<text x="32" y="246" fill="#1B1F24" font-size="27" font-weight="700">acumulado</text>
+<text x="32" y="300" fill="#5A6270" font-size="19">Impacto acumulado y</text>
+<text x="32" y="330" fill="#5A6270" font-size="19">clientes con mayor</text>
+<text x="32" y="360" fill="#5A6270" font-size="19">penalización.</text>
+<text x="32" y="430" fill="#1F3A5F" font-size="20" font-weight="700">Abrir  →</text></g>
+<text x="72" y="1030" fill="#8A9099" font-size="15">Brújula Soporte IT es una empresa ficticia · datos sintéticos con fines de demostración</text>
+</svg>

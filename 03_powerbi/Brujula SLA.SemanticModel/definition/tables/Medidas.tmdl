@@ -1,0 +1,1397 @@
+/// Tabla de medidas: aquí están todas las medidas del modelo, agrupadas en carpetas. Sin datos ni relaciones.
+table Medidas
+	lineageTag: 06bd2541-0f62-44fe-943c-d7f4b8f1e210
+
+	/// Tickets que entran en el periodo (por fecha de creación).
+	measure 'Tickets creados' =
+			CALCULATE(
+				COUNTROWS(Tickets),
+				USERELATIONSHIP(Tickets[Fecha creación], Calendario[Fecha])
+			)
+		formatString: #,##0
+		displayFolder: 01 Volumen
+		lineageTag: 59c4e221-db7b-4aee-b2e6-7983776d1fcd
+
+	/// Tickets que dejan de estar abiertos en el periodo: resueltos o cancelados.
+	measure 'Tickets salida' =
+			CALCULATE(
+				COUNTROWS(Tickets),
+				USERELATIONSHIP(Tickets[Fecha salida], Calendario[Fecha])
+			)
+		formatString: #,##0
+		displayFolder: 01 Volumen
+		lineageTag: d914fddf-40ad-45f3-a359-3d8723e48a83
+
+	/// Tickets que salen ÷ tickets que entran. Por encima del 100 % el backlog baja.
+	measure 'Ritmo de cierre' = DIVIDE([Tickets salida], [Tickets creados])
+		formatString: 0.0%
+		displayFolder: 01 Volumen
+		lineageTag: c38174ec-3bd2-4353-a49e-dc2d86cb2b13
+
+	/// Tickets abiertos al final del último día del periodo (respeta cliente, departamento y SLA).
+	measure 'Backlog al cierre' =
+			VAR _fin = MAX(Calendario[Fecha])
+			RETURN
+				CALCULATE(
+					COUNTROWS(Tickets),
+					REMOVEFILTERS(Calendario),
+					REMOVEFILTERS(Sprint),
+					Tickets[Fecha creación] <= _fin,
+					ISBLANK(Tickets[Fecha salida]) || Tickets[Fecha salida] > _fin
+				)
+		formatString: #,##0
+		displayFolder: 01 Volumen
+		lineageTag: 164de7c9-1859-4302-9c5a-b15649c4240d
+
+	/// Incidencias y peticiones medidas (cumplidas o incumplidas) en el periodo: la base del % que se factura.
+	measure 'Tickets computables' = CALCULATE(COUNTROWS(Tickets), Tickets[Computa facturación] = TRUE())
+		formatString: #,##0
+		displayFolder: 02 SLA
+		lineageTag: 7d648776-ddcd-4061-a91b-6880c306f8db
+
+	/// Tickets computables resueltos dentro del SLA.
+	measure 'Tickets cumplidos' = CALCULATE([Tickets computables], Tickets[Cumple resolución] = TRUE())
+		formatString: #,##0
+		displayFolder: 02 SLA
+		lineageTag: 5f3541de-7108-4cba-aa26-746cabf55f44
+
+	/// Tickets computables que agotaron su SLA de resolución.
+	measure 'Tickets incumplidos' = [Tickets computables] - [Tickets cumplidos]
+		formatString: #,##0
+		displayFolder: 02 SLA
+		lineageTag: 11c3a4e6-e637-448a-a550-bbfbf94ef175
+
+	/// Tickets computables cumplidos ÷ computables (sin ponderar, como en el contrato).
+	measure '% Cumplimiento SLA' = DIVIDE([Tickets cumplidos], [Tickets computables])
+		formatString: 0.0%
+		displayFolder: 02 SLA
+		lineageTag: 93c95c41-a026-4d26-8c51-2b01d7af23cd
+
+	/// Complemento del % de cumplimiento.
+	measure '% Incumplimiento' = DIVIDE([Tickets incumplidos], [Tickets computables])
+		formatString: 0.0%
+		displayFolder: 02 SLA
+		lineageTag: 49d56aee-199d-4524-9cee-65a71809af32
+
+	/// % de tickets computables con la primera respuesta dentro de plazo.
+	measure 'SLA 1ª respuesta' = DIVIDE(CALCULATE([Tickets computables], Tickets[Cumple respuesta] = TRUE()), [Tickets computables])
+		formatString: 0.0%
+		displayFolder: 02 SLA
+		lineageTag: 5b763137-26b5-451c-b6e4-3908c66c5943
+
+	/// % de cumplimiento de las incidencias críticas (P1). En blanco si no hubo P1 en el periodo.
+	measure 'SLA P1' = CALCULATE([% Cumplimiento SLA], 'Política SLA'[Prioridad] = "P1")
+		formatString: 0.0%
+		displayFolder: 02 SLA
+		lineageTag: 931b0549-dcd6-4edf-a20f-116db2113332
+
+	/// First Level Resolution (HDI): % de tickets resueltos por Service Desk N1 sin escalar.
+	measure 'Resolución en primer nivel' =
+			DIVIDE(
+				CALCULATE(COUNTROWS(Tickets), Tickets[Resuelto] = TRUE(), Tickets[Departamento id] = 1, Tickets[Reasignaciones] = 0),
+				CALCULATE(COUNTROWS(Tickets), Tickets[Resuelto] = TRUE())
+			)
+		formatString: 0.0%
+		displayFolder: 03 Operación
+		lineageTag: cf8873c1-efc5-4076-af8d-fde9d6333ba3
+
+	/// % de tickets medidos que pasaron por al menos una reasignación.
+	measure '% Escalados' = DIVIDE(CALCULATE(COUNTROWS(Tickets), Tickets[Reasignaciones] > 0), COUNTROWS(Tickets))
+		formatString: 0.0%
+		displayFolder: 03 Operación
+		lineageTag: 13adb1d7-233f-4357-8150-73329f6c7e02
+
+	/// Mean Time To Resolve: horas de reloj de SLA (sin pausas) de los tickets resueltos.
+	measure 'MTTR (h)' =
+			DIVIDE(
+				CALCULATE(SUM(Tickets[Minutos resolución]), Tickets[Resuelto] = TRUE()),
+				CALCULATE(COUNTROWS(Tickets), Tickets[Resuelto] = TRUE())
+			) / 60
+		formatString: 0.0" h"
+		displayFolder: 03 Operación
+		lineageTag: c662980b-c68d-48fe-b6c9-f9f740460667
+
+	/// Minutos de reloj de SLA hasta la primera respuesta.
+	measure '1ª respuesta media (min)' = AVERAGE(Tickets[Minutos respuesta])
+		formatString: 0" min"
+		displayFolder: 03 Operación
+		lineageTag: 006e0f21-3d9c-488c-9170-bd946583cc76
+
+	/// Penalización oficial del cliente-sprint repartida a partes iguales entre sus tickets incumplidos.
+	measure 'Penalización atribuida €' = SUM(Tickets[Penalización atribuida])
+		formatString: #,##0 €
+		displayFolder: 05 Facturación
+		lineageTag: 15569d69-6be6-494d-9730-0c27390b3290
+
+	/// % acumulado de la penalización, de la categoría que más penaliza a la que menos (curva de Pareto).
+	measure '% Acumulado Pareto' =
+			VAR _actual = [Penalización atribuida €]
+			VAR _total = CALCULATE([Penalización atribuida €], REMOVEFILTERS(Tickets[Departamento · tipo]))
+			VAR _acumulado =
+				SUMX(
+					FILTER(ALLSELECTED(Tickets[Departamento · tipo]), [Penalización atribuida €] >= _actual),
+					[Penalización atribuida €]
+				)
+			RETURN IF(NOT ISBLANK(_actual), DIVIDE(_acumulado, _total))
+		formatString: 0.0%
+		displayFolder: 05 Facturación
+		lineageTag: c83df10d-d74b-45cd-9d36-c8379a05e454
+
+	/// Cuota de los sprints facturados (cuota anual ÷ nº de sprints del año).
+	measure 'Cuota facturada €' = SUM('Facturación'[Cuota sprint])
+		formatString: #,##0 €
+		displayFolder: 05 Facturación
+		lineageTag: 75d65e0f-221a-4146-be8a-6f09b9544c80
+
+	/// Bonificaciones ganadas por superar el tramo de bonus.
+	measure 'Bonus €' = COALESCE(CALCULATE(SUM('Facturación'[Ajuste]), 'Facturación'[Ajuste] > 0), 0)
+		formatString: #,##0 €
+		displayFolder: 05 Facturación
+		lineageTag: 6d3d1ff1-ffef-46de-bc29-f442123d7c24
+
+	/// Penalizaciones (en positivo) por caer en tramo deficiente.
+	measure 'Penalización €' = COALESCE(-CALCULATE(SUM('Facturación'[Ajuste]), 'Facturación'[Ajuste] < 0), 0)
+		formatString: #,##0 €
+		displayFolder: 05 Facturación
+		lineageTag: 59f9fa05-c652-4ede-8a25-20ae27987de2
+
+	/// Bonus − penalización.
+	measure 'Balance €' = COALESCE(SUM('Facturación'[Ajuste]), 0)
+		formatString: #,##0 €
+		displayFolder: 05 Facturación
+		lineageTag: 4c53187f-e65d-437a-8840-3e403f085064
+
+	/// Balance ÷ nº de sprints del periodo: comparable entre un sprint y varios.
+	measure 'Balance medio por sprint €' = DIVIDE([Balance €], DISTINCTCOUNT('Facturación'[Sprint id]))
+		formatString: #,##0 €
+		displayFolder: 05 Facturación
+		lineageTag: 1cb3ba80-5a35-4f81-ad6f-5af830b30ee8
+
+	/// Parte de la cuota que se pierde en penalizaciones (créditos de servicio).
+	measure '% Penalización sobre cuota' = DIVIDE([Penalización €], [Cuota facturada €])
+		formatString: 0.00%
+		displayFolder: 05 Facturación
+		lineageTag: 5c7b8ff0-5e1c-4144-a4d4-b045f1f1ca07
+
+	/// Nº de combinaciones cliente × sprint en tramo deficiente.
+	measure 'Cliente-sprints deficientes' = COALESCE(CALCULATE(COUNTROWS('Facturación'), 'Facturación'[Tramo] = "deficiente"), 0)
+		formatString: #,##0
+		displayFolder: 05 Facturación
+		lineageTag: 49c85845-1237-4c21-a035-bc205bb7bd51
+
+	/// Clientes en tramo deficiente por sprint (media si hay varios sprints).
+	measure 'Clientes en tramo deficiente' = DIVIDE([Cliente-sprints deficientes], DISTINCTCOUNT('Facturación'[Sprint id]))
+		formatString: #,##0.0
+		displayFolder: 05 Facturación
+		lineageTag: 3501efc9-a246-4cd2-b211-39cdd32133b6
+
+	/// Cuota de los cliente-sprints que quedaron a menos de 1 punto de caer al tramo inferior ÷ cuota total.
+	measure '% Ingresos en riesgo' =
+			DIVIDE(
+				CALCULATE(
+					[Cuota facturada €],
+					'Facturación'[Puntos sobre tramo inferior] < 1,
+					'Facturación'[Tramo] <> "deficiente",
+					NOT ISBLANK('Facturación'[% cumplimiento]),
+					'Facturación'[% cumplimiento] < 100
+				),
+				[Cuota facturada €]
+			) + 0
+		formatString: 0.0%
+		displayFolder: 05 Facturación
+		lineageTag: 7a94969f-333f-48ff-85fe-4479b3233c98
+
+	/// % de cumplimiento del SLA de resolución con el que se factura (cumplidos ÷ computables), por cliente; vacío en totales.
+	measure '% SLA del sprint' = IF(ISINSCOPE(Cliente[Cliente]), DIVIDE(SUM('Facturación'[Tickets cumplidos]), SUM('Facturación'[Tickets computables])))
+		formatString: 0.0%
+		displayFolder: 06 Facturación por cliente
+		lineageTag: 7fbc2b62-1768-44db-917d-a03f09d2c986
+
+	/// Tickets que entran en el % de facturación (incidencias y peticiones, sin cancelados), por cliente; vacío en totales.
+	measure 'Tickets computables del sprint' = IF(ISINSCOPE(Cliente[Cliente]), SUM('Facturación'[Tickets computables]))
+		formatString: #,##0
+		displayFolder: 06 Facturación por cliente
+		lineageTag: 83716b39-a26d-45fc-adae-6087ba3581ba
+
+	/// Tickets computables resueltos fuera del plazo de resolución, por cliente; vacío en totales.
+	measure 'Incumplidos del sprint' = IF(ISINSCOPE(Cliente[Cliente]), SUM('Facturación'[Tickets computables]) - SUM('Facturación'[Tickets cumplidos]))
+		formatString: #,##0
+		displayFolder: 06 Facturación por cliente
+		lineageTag: 27acebab-121b-4c1b-91da-5e6f2d281dfe
+
+	/// Nivel de contrato del cliente en contexto (para mostrarlo como columna en la matriz de clientes).
+	measure Nivel = SELECTEDVALUE(Cliente[Nivel de contrato])
+		displayFolder: 06 Facturación por cliente
+		lineageTag: 5fc5b1dd-4359-442d-87ba-73c31f7075f9
+
+	/// Por debajo de este % el cliente penaliza (Ficha §0.3): su objetivo contractual. Bronze no penaliza nunca.
+	measure 'Umbral de penalización' =
+			VAR _nivel = SELECTEDVALUE(Cliente[Nivel de contrato])
+			RETURN
+				SWITCH(
+					TRUE(),
+					ISBLANK(_nivel), BLANK(),
+					_nivel = "Bronze", "Sin penalización",
+					"< " & FORMAT(SELECTEDVALUE(Cliente[Objetivo contractual]), "0 %")
+				)
+		displayFolder: 06 Facturación por cliente
+		lineageTag: 11c3025e-e6c9-4b9e-bd77-7755ee4fb35b
+
+	/// 1 si el cliente alcanza su umbral de penalización en el sprint, 0 si no (icono ✓/✗ de la matriz de clientes).
+	measure 'Cumple umbral SLA' =
+			VAR _pct = [% SLA del sprint]
+			RETURN
+				IF(
+					NOT ISBLANK(_pct) && HASONEVALUE(Cliente[Cliente]),
+					IF(_pct >= SELECTEDVALUE(Cliente[Objetivo contractual]), 1, 0)
+				)
+		formatString: #,##0
+		displayFolder: 06 Facturación por cliente
+		lineageTag: 4f29ceb1-44d3-4d1f-bfe0-360a01968b38
+
+	/// Rojo si el % del sprint queda por debajo del umbral de penalización.
+	measure 'Color % SLA del sprint' =
+			VAR _nivel = SELECTEDVALUE(Cliente[Nivel de contrato])
+			VAR _pct = [% SLA del sprint]
+			RETURN
+				IF(
+					_nivel <> "Bronze" && NOT ISBLANK(_pct) && _pct < SELECTEDVALUE(Cliente[Objetivo contractual]),
+					"#C0392B",
+					"#1B1F24"
+				)
+		displayFolder: 06 Facturación por cliente
+		lineageTag: f43d2c08-8a8c-488b-997c-4879983ba405
+
+	/// Agentes ausentes (vacaciones o baja) ÷ agentes en plantilla, en días laborables.
+	measure '% Agentes ausentes' =
+			CALCULATE(
+				DIVIDE(SUM(Calendario[Agentes ausentes]), SUM(Calendario[Agentes activos])),
+				Calendario[Laborable] = TRUE()
+			)
+		formatString: 0.0%
+		displayFolder: 04 Plantilla
+		lineageTag: 9a0636e0-bbf7-4ac2-8b78-d17e9dc404aa
+
+	/// Tickets que entran ÷ agentes disponibles-día laborable (aproximación a la carga/utilización).
+	measure 'Tickets por agente y día' =
+			DIVIDE(
+				[Tickets creados],
+				CALCULATE(SUM(Calendario[Agentes activos]) - SUM(Calendario[Agentes ausentes]), Calendario[Laborable] = TRUE())
+			)
+		formatString: 0.00
+		displayFolder: 04 Plantilla
+		lineageTag: e7ef3fc0-e801-4c56-8736-1ba572b75b60
+
+	/// Sprint elegido en los filtros, con sus fechas.
+	measure 'Periodo seleccionado' =
+			IF(
+				HASONEVALUE(Sprint[Sprint]),
+				"Sprint " & SELECTEDVALUE(Sprint[Periodo]),
+				"Varios sprints (" & COUNTROWS(VALUES(Sprint[Sprint])) & ")"
+			)
+		displayFolder: 08 Etiquetas
+		lineageTag: ce179710-7d9f-419c-95a9-e03f2cebd5b7
+
+	/// Valor del KPI de la fila de Objetivos KPI en contexto (una sola medida para las 15 tarjetas).
+	measure 'Valor KPI' =
+			SWITCH(
+				SELECTEDVALUE('Objetivos KPI'[Id]),
+				1, [Ritmo de cierre],
+				2, [Backlog al cierre],
+				3, [Resolución en primer nivel],
+				4, [% Escalados],
+				5, [SLA 1ª respuesta],
+				6, [% Cumplimiento SLA],
+				7, [SLA P1],
+				8, [Balance medio por sprint €],
+				9, [% Penalización sobre cuota],
+				10, [Clientes en tramo deficiente],
+				11, [% Ingresos en riesgo],
+				12, [MTTR (h)],
+				13, [1ª respuesta media (min)],
+				14, [Tickets por agente y día],
+				15, [% Agentes ausentes],
+				BLANK()
+			)
+		displayFolder: 07 Cuadro de objetivos
+		lineageTag: 85332ab4-3491-45f1-85ac-57f6d480c61b
+
+		formatStringDefinition = SWITCH(SELECTEDVALUE('Objetivos KPI'[Formato]), "pct", "0.0%", "eur", "#,##0 €", "num", "#,##0", "dec", "0.0", "dec2", "0.00", "h", "0.0"" h""", "min", "0"" min""", "0.0")
+
+	/// Valor del KPI en el sprint anterior (solo con un sprint seleccionado).
+	measure 'Valor KPI sprint anterior' =
+			VAR _orden = MAX(Sprint[Orden])
+			RETURN
+				IF(
+					HASONEVALUE(Sprint[Sprint]) && _orden > 1,
+					CALCULATE([Valor KPI], REMOVEFILTERS(Sprint), Sprint[Orden] = _orden - 1)
+				)
+		displayFolder: 07 Cuadro de objetivos
+		lineageTag: 5ec18924-0221-4353-a5bb-0a69e32ac610
+
+		formatStringDefinition = SWITCH(SELECTEDVALUE('Objetivos KPI'[Formato]), "pct", "0.0%", "eur", "#,##0 €", "num", "#,##0", "dec", "0.0", "dec2", "0.00", "h", "0.0"" h""", "min", "0"" min""", "0.0")
+
+	/// Cumplido si el KPI alcanza su objetivo (≥ si mayor es mejor, ≤ si menor es mejor); si no, Incumplido.
+	measure 'Estado KPI' =
+			VAR _v = [Valor KPI]
+			VAR _mayor = SELECTEDVALUE('Objetivos KPI'[Sentido]) = "Mayor es mejor"
+			VAR _obj = [Objetivo KPI]
+			RETURN
+				SWITCH(
+					TRUE(),
+					ISBLANK(_v) || ISBLANK(_obj), BLANK(),
+					_mayor && _v >= _obj, "Cumplido",
+					NOT _mayor && _v <= _obj, "Cumplido",
+					"Incumplido"
+				)
+		displayFolder: 07 Cuadro de objetivos
+		lineageTag: 0e2608aa-d959-4f5d-a9f0-f08bbdd667d9
+
+	/// Estado del KPI en el sprint anterior.
+	measure 'Estado KPI sprint anterior' =
+			VAR _v = [Valor KPI sprint anterior]
+			VAR _mayor = SELECTEDVALUE('Objetivos KPI'[Sentido]) = "Mayor es mejor"
+			VAR _obj = [Objetivo KPI]
+			RETURN
+				SWITCH(
+					TRUE(),
+					ISBLANK(_v) || ISBLANK(_obj), BLANK(),
+					_mayor && _v >= _obj, "Cumplido",
+					NOT _mayor && _v <= _obj, "Cumplido",
+					"Incumplido"
+				)
+		displayFolder: 07 Cuadro de objetivos
+		lineageTag: 26600cea-bd14-4d33-a196-ebbd159ded0e
+
+	/// Cambio frente al sprint anterior: en puntos si el KPI es un %, en % si es una cifra.
+	measure 'Variación KPI' =
+			VAR _v = [Valor KPI]
+			VAR _p = [Valor KPI sprint anterior]
+			RETURN
+				IF(
+					NOT ISBLANK(_v) && NOT ISBLANK(_p),
+					IF(SELECTEDVALUE('Objetivos KPI'[Formato]) = "pct", _v - _p, DIVIDE(_v - _p, ABS(_p)))
+				)
+		formatString: 0.0%
+		displayFolder: 07 Cuadro de objetivos
+		lineageTag: 317060fb-8ab3-4351-a3f8-936b05ba4383
+
+	/// Flecha y variación frente al sprint anterior (pp = puntos porcentuales).
+	measure 'Variación KPI texto' =
+			VAR _d = [Variación KPI]
+			VAR _flecha = IF(_d > 0, "↗ ", IF(_d < 0, "↘ ", "→ "))
+			RETURN
+				IF(
+					ISBLANK(_d),
+					"—",
+					_flecha
+						& IF(
+							SELECTEDVALUE('Objetivos KPI'[Formato]) = "pct",
+							FORMAT(_d * 100, "+0.0;-0.0;0.0") & " pp",
+							FORMAT(_d, "+0.0%;-0.0%;0.0%")
+						)
+				)
+		displayFolder: 07 Cuadro de objetivos
+		lineageTag: be15aaed-d869-4663-a946-c7ae9a03c27b
+
+	/// Verde si el KPI mejora frente al sprint anterior, rojo si empeora.
+	measure 'Color variación' =
+			VAR _d = [Variación KPI]
+			VAR _mayor = SELECTEDVALUE('Objetivos KPI'[Sentido]) = "Mayor es mejor"
+			RETURN
+				SWITCH(
+					TRUE(),
+					ISBLANK(_d) || _d = 0, "#605E5C",
+					(_mayor && _d > 0) || (NOT _mayor && _d < 0), "#1E7B5C",
+					"#C0392B"
+				)
+		displayFolder: 07 Cuadro de objetivos
+		lineageTag: 451509d7-79b6-4c54-aba3-440c1e54260b
+
+	/// Fondo de la etiqueta: verde claro si se cumple, rojo claro si no, gris si no hay datos.
+	measure 'Color estado' =
+			SWITCH(
+				[Estado KPI],
+				"Cumplido", "#E3F2EA",
+				"Incumplido", "#FBE4E2",
+				"#EEF0F3"
+			)
+		displayFolder: 07 Cuadro de objetivos
+		lineageTag: 8b36c508-395f-449c-b0fd-eefe17a4a9ae
+
+	/// Texto verde oscuro o rojo oscuro sobre su fondo claro (contraste AA).
+	measure 'Color texto estado' =
+			SWITCH(
+				[Estado KPI],
+				"Cumplido", "#1E6B4A",
+				"Incumplido", "#A93226",
+				"#5A6270"
+			)
+		displayFolder: 07 Cuadro de objetivos
+		lineageTag: 39d37d2c-0b33-46f8-8065-1ce57355d2ea
+
+	/// Estado con icono para mostrar en la etiqueta.
+	measure 'Texto estado' =
+			SWITCH(
+				[Estado KPI],
+				"Cumplido", "✓ Cumplido",
+				"Incumplido", "✕ Incumplido",
+				"Sin datos"
+			)
+		displayFolder: 07 Cuadro de objetivos
+		lineageTag: 4c044aef-65d2-466c-a8cb-29b3ce5b9c1b
+
+	/// Texto de referencia: con qué sprint se compara.
+	measure 'Etiqueta sprint anterior' =
+			VAR _orden = MAX(Sprint[Orden])
+			VAR _anterior = CALCULATE(MAX(Sprint[Sprint]), REMOVEFILTERS(Sprint), Sprint[Orden] = _orden - 1)
+			RETURN IF(HASONEVALUE(Sprint[Sprint]) && NOT ISBLANK(_anterior), "vs sprint " & _anterior, "Elige un sprint")
+		displayFolder: 08 Etiquetas
+		lineageTag: 5416c67c-d253-4ff3-b683-e086f37ef299
+
+	/// Nº de KPI que cumplen su objetivo.
+	measure 'KPI Cumplido' = COUNTROWS(FILTER(ALL('Objetivos KPI'[Id]), [Estado KPI] = "Cumplido")) + 0
+		formatString: #,##0
+		displayFolder: 07 Cuadro de objetivos
+		lineageTag: 2529ae9a-876b-4ed9-957f-7bb42bfabd58
+
+	/// Nº de KPI que no cumplen su objetivo.
+	measure 'KPI Incumplido' = COUNTROWS(FILTER(ALL('Objetivos KPI'[Id]), [Estado KPI] = "Incumplido")) + 0
+		formatString: #,##0
+		displayFolder: 07 Cuadro de objetivos
+		lineageTag: 03bb2f4f-5189-486a-8ff7-b43eec8ca71b
+
+	/// Nº de KPI cumplidos en el sprint anterior.
+	measure 'KPI Cumplido sprint anterior' = COUNTROWS(FILTER(ALL('Objetivos KPI'[Id]), [Estado KPI sprint anterior] = "Cumplido")) + 0
+		formatString: #,##0
+		displayFolder: 07 Cuadro de objetivos
+		lineageTag: 669c2ec8-81b0-4bef-a46c-cde12d88f242
+
+	/// Nº de KPI incumplidos en el sprint anterior.
+	measure 'KPI Incumplido sprint anterior' = COUNTROWS(FILTER(ALL('Objetivos KPI'[Id]), [Estado KPI sprint anterior] = "Incumplido")) + 0
+		formatString: #,##0
+		displayFolder: 07 Cuadro de objetivos
+		lineageTag: 6d583e45-3577-4b3e-a23f-b02940ab9382
+
+	/// Objetivo con el que se compara el KPI. En el KPI 6, si el filtro deja un único nivel o cliente, usa su umbral de contrato (Gold 95 %, Silver 90 %, Bronze 85 %); si no, el de Objetivos KPI.
+	measure 'Objetivo KPI' =
+			VAR _base = SELECTEDVALUE('Objetivos KPI'[Objetivo])
+			VAR _contrato = SELECTEDVALUE(Cliente[Objetivo contractual])
+			RETURN
+				IF(SELECTEDVALUE('Objetivos KPI'[Id]) = 6 && NOT ISBLANK(_contrato), _contrato, _base)
+		displayFolder: 07 Cuadro de objetivos
+		lineageTag: dad8dd71-7c07-4a91-8a0d-d7c4fc33a337
+
+		formatStringDefinition = SWITCH(SELECTEDVALUE('Objetivos KPI'[Formato]), "pct", "0.0%", "eur", "#,##0 €", "num", "#,##0", "dec", "0.0", "dec2", "0.00", "h", "0.0"" h""", "min", "0"" min""", "0.0")
+
+	/// Umbral con el que se compara el KPI, con su sentido (≥ / ≤), para mostrarlo bajo el estado de la tarjeta.
+	measure 'Texto objetivo KPI' =
+			VAR _obj = [Objetivo KPI]
+			VAR _signo = IF(SELECTEDVALUE('Objetivos KPI'[Sentido]) = "Mayor es mejor", "≥ ", "≤ ")
+			VAR _txt =
+				SWITCH(
+					SELECTEDVALUE('Objetivos KPI'[Formato]),
+					"pct", FORMAT(_obj, "0%"),
+					"eur", FORMAT(_obj, "#,##0") & " €",
+					"num", FORMAT(_obj, "#,##0"),
+					"dec2", FORMAT(_obj, "0.00"),
+					"h", FORMAT(_obj, "0") & " h",
+					"min", FORMAT(_obj, "0") & " min",
+					FORMAT(_obj, "0")
+				)
+			RETURN
+				IF(NOT ISBLANK(_obj), "Objetivo " & _signo & _txt)
+		displayFolder: 07 Cuadro de objetivos
+		lineageTag: a1325c7a-17e7-42a6-90e7-e873ca2e8100
+
+	/// Borde de la etiqueta de estado, en un tono intermedio del mismo color.
+	measure 'Color borde estado' =
+			SWITCH(
+				[Estado KPI],
+				"Cumplido", "#9CCFB5",
+				"Incumplido", "#E8A39C",
+				"#C5CBD3"
+			)
+		displayFolder: 07 Cuadro de objetivos
+		lineageTag: e247a383-b681-46bb-a0d7-0c04cebcbbac
+
+	/// «de N» junto al nº de cumplidos: N = KPI con datos en el periodo.
+	measure 'Texto total objetivos' = "de " & ([KPI Cumplido] + [KPI Incumplido])
+		displayFolder: 07 Cuadro de objetivos
+		lineageTag: c300b7c5-057e-4eb4-a39e-251b614e0ab9
+
+	/// Cumplidos del sprint anterior y si el sprint actual mejora, empeora o queda igual.
+	measure 'Texto sprint anterior objetivos' =
+			VAR _c = [KPI Cumplido]
+			VAR _p = [KPI Cumplido sprint anterior]
+			VAR _pt = _p + [KPI Incumplido sprint anterior]
+			RETURN
+				IF(
+					_pt = 0,
+					"Sin sprint anterior para comparar",
+					"Sprint anterior: " & _p & " de " & _pt & " ("
+						& SWITCH(TRUE(), _c > _p, "👍", _c < _p, "👎", "🟰") & ")"
+				)
+		displayFolder: 07 Cuadro de objetivos
+		lineageTag: cc8273a7-4621-44c2-aab5-65908d9e6fa2
+
+	/// Leyenda de la barra de la cabecera: nº de KPI cumplidos.
+	measure 'Texto leyenda cumplidos' = "✓  " & [KPI Cumplido] & " cumplidos"
+		displayFolder: 07 Cuadro de objetivos
+		lineageTag: d35c5dea-0806-4e80-9fd4-f68937df6364
+
+	/// Leyenda de la barra de la cabecera: nº de KPI incumplidos.
+	measure 'Texto leyenda incumplidos' = "✕  " & [KPI Incumplido] & " incumplidos"
+		displayFolder: 07 Cuadro de objetivos
+		lineageTag: 935e87d1-8375-4b6e-8b97-32ac208ccfcc
+
+	/// Orden del último sprint con facturación (fin de la ventana de 6 sprints).
+	measure 'Último sprint facturado' = MAXX(FILTER(ALL(Sprint), CALCULATE(NOT ISEMPTY('Facturación'))), Sprint[Orden])
+		formatString: #,##0
+		displayFolder: 06 Facturación por cliente
+		lineageTag: 9e2ba0cb-eb1e-4300-b84d-9698f5ceaa50
+
+	/// % de SLA de resolución del cliente en el sprint; en el total de la fila, su margen en el último sprint (orden).
+	measure '% SLA celda riesgo' =
+			VAR _pct =
+				DIVIDE(SUM('Facturación'[Tickets cumplidos]), SUM('Facturación'[Tickets computables]))
+			VAR _u = [Último sprint facturado]
+			VAR _o = MAX(Sprint[Orden])
+			RETURN
+				IF(
+					HASONEVALUE(Sprint[Sprint]),
+					IF(_o > _u - 6 && _o <= _u, _pct),
+					-- fuera de un sprint concreto (total de la fila, oculto): margen sobre el objetivo en el último
+					-- sprint, que es por lo que se ordena la matriz (de menor a mayor margen)
+					CALCULATE(
+						DIVIDE(SUM('Facturación'[Tickets cumplidos]), SUM('Facturación'[Tickets computables])),
+						FILTER(ALL(Sprint), Sprint[Orden] = _u)
+					) - SELECTEDVALUE(Cliente[Objetivo contractual])
+				)
+		formatString: 0.0%
+		displayFolder: 06 Facturación por cliente
+		lineageTag: 6d2712b7-d529-43ec-bf39-2a7adee7d3ce
+
+	/// Color de fondo de la celda según el tramo del cliente en ese sprint.
+	measure 'Color tramo SLA' =
+			VAR _p = DIVIDE(SUM('Facturación'[Tickets cumplidos]), SUM('Facturación'[Tickets computables]))
+			VAR _n = SELECTEDVALUE(Cliente[Nivel de contrato])
+			VAR _u = [Último sprint facturado]
+			VAR _o = MAX(Sprint[Orden])
+			RETURN
+				IF(
+					NOT ISBLANK(_p) && HASONEVALUE(Sprint[Sprint]) && _o > _u - 6 && _o <= _u,
+					-- tramos del contrato (Ficha §0.3): bonus azul, neutro gris, deficiente leve / medio / máximo en naranjas
+					SWITCH(
+						_n,
+						"Gold", SWITCH(TRUE(), _p >= 0.98, "#CFE0F3", _p >= 0.95, "#F1F3F6", _p >= 0.92, "#FBE0CC",
+									   _p >= 0.88, "#F7C39E", "#F2A26F"),
+						"Silver", SWITCH(TRUE(), _p >= 0.95, "#CFE0F3", _p >= 0.90, "#F1F3F6", _p >= 0.85, "#FBE0CC",
+										 "#F2A26F")
+					)
+				)
+		displayFolder: 06 Facturación por cliente
+		lineageTag: 671a2b6d-2607-4583-81c9-0cad0d266094
+
+	/// Título de la página Riesgo por cliente: clientes en tramo deficiente o a menos de 1 pp de su objetivo.
+	measure 'Título riesgo clientes' =
+			VAR _u = [Último sprint facturado]
+			VAR _clientes = CALCULATETABLE(VALUES(Cliente[Cliente]), Cliente[Nivel de contrato] IN {"Gold", "Silver"})
+			VAR _riesgo =
+				COUNTROWS(
+					FILTER(
+						_clientes,
+						VAR _p = CALCULATE(
+							DIVIDE(SUM('Facturación'[Tickets cumplidos]), SUM('Facturación'[Tickets computables])),
+							FILTER(ALL(Sprint), Sprint[Orden] = _u)
+						)
+						VAR _obj = CALCULATE(SELECTEDVALUE(Cliente[Objetivo contractual]))
+						RETURN NOT ISBLANK(_p) && _p < _obj + 0.01
+					)
+				) + 0
+			VAR _sprint = CALCULATE(MAX(Sprint[Sprint]), FILTER(ALL(Sprint), Sprint[Orden] = _u))
+			RETURN
+				_riesgo & " de " & COUNTROWS(_clientes) & " clientes Gold y Silver presentan incumplimiento o están a menos de "
+					& "1 pp de su objetivo (sprint " & _sprint & ")"
+		displayFolder: 06 Facturación por cliente
+		lineageTag: 4870e37a-acf7-496d-8a21-fcc4829bd729
+
+	/// Parte de los tickets de su tipo (incidencias, peticiones o tareas) que lleva el departamento: cada tipo suma 100 %.
+	measure '% sobre su tipo' =
+			DIVIDE(
+				[Tickets creados],
+				CALCULATE([Tickets creados], ALLSELECTED(Departamento))
+			)
+		formatString: 0.0%
+		displayFolder: 09 Tickets por departamento
+		lineageTag: 3226d928-8e78-4113-9ae3-d8b365d25a77
+
+	/// Parte de los tickets que cuenta para el % de SLA de facturación (incidencias y peticiones no canceladas).
+	measure '% impacta en factura' =
+			DIVIDE(
+				CALCULATE([Tickets creados], Tickets[Computa facturación] = TRUE()),
+				[Tickets creados]
+			)
+		formatString: 0.0%
+		displayFolder: 09 Tickets por departamento
+		lineageTag: 82eebed1-365d-448a-813a-81e97e15f317
+
+	/// Celda de la matriz: nº de tickets, % sobre el total de su tipo y % que impacta en la factura.
+	measure 'Texto celda departamento' =
+			VAR _n = [Tickets creados]
+			RETURN
+				IF(
+					_n > 0,
+					FORMAT(_n, "#,0") & UNICHAR(10)
+						& FORMAT([% sobre su tipo], "0.0 %")
+						& IF(HASONEVALUE('Política SLA'[Tipo]), " de su tipo · ", " del total · ")
+						& FORMAT([% impacta en factura], "0 %") & " impacta"
+				)
+		displayFolder: 09 Tickets por departamento
+		lineageTag: 395bdbb0-cae9-4625-b9c4-f3fafed80fb3
+
+	/// Fondo de la celda según su peso dentro de su tipo de ticket.
+	measure 'Color celda departamento' =
+			VAR _p = [% sobre su tipo]
+			RETURN
+				IF(
+					HASONEVALUE(Departamento[Departamento]) && HASONEVALUE('Política SLA'[Tipo]) && NOT ISBLANK(_p),
+					-- más peso dentro de su tipo, azul más intenso
+					SWITCH(TRUE(), _p >= 0.40, "#9EC5E8", _p >= 0.20, "#BFD8EE", _p >= 0.10, "#D9E7F5", "#EEF4FB")
+				)
+		displayFolder: 09 Tickets por departamento
+		lineageTag: fde3de98-c318-4322-a679-7b51319421d2
+
+	/// Penalización en negativo, para dibujarla hacia abajo frente a la bonificación.
+	measure 'Penalización negativa €' = -[Penalización €]
+		formatString: #,##0 €
+		displayFolder: 05 Facturación
+		lineageTag: 8cf3610e-c6f5-49ac-8c33-68c52f9185ee
+
+	/// Título del gráfico de barras: totales de bonificación y penalización de todos los sprints.
+	measure 'Título bonificación y penalización' =
+			VAR _bonus = CALCULATE([Bonus €], REMOVEFILTERS(Sprint))
+			VAR _pen = CALCULATE([Penalización €], REMOVEFILTERS(Sprint))
+			VAR _conDatos = FILTER(ALL(Sprint), CALCULATE(NOT ISEMPTY('Facturación')))
+			VAR _desde = MINX(_conDatos, Sprint[Año])
+			VAR _hasta = MAXX(_conDatos, Sprint[Año])
+			RETURN
+				"Bonificación y penalización por sprint · " & _desde & IF(_hasta <> _desde, "–" & _hasta) & ": "
+					& FORMAT(_bonus / 1000, "#,0") & " mil € frente a " & FORMAT(_pen / 1000, "#,0") & " mil €"
+		displayFolder: 05 Facturación
+		lineageTag: b053f12a-f813-464c-b32d-525fbca0b780
+
+	/// Facturado en el periodo, en miles de euros (cifra de la tarjeta).
+	measure 'Texto cuota sprint' = FORMAT([Cuota facturada €] / 1000, "#,0") & " mil €"
+		displayFolder: 05 Facturación
+		lineageTag: 0608680e-cd5b-4e15-8ab8-ab344b786641
+
+	/// Línea inferior de la tarjeta de facturado: nº de clientes que pagan cuota en el periodo.
+	measure 'Texto clientes facturados' = "Cuota del sprint de los " & DISTINCTCOUNT('Facturación'[Cliente id]) & " clientes"
+		displayFolder: 05 Facturación
+		lineageTag: c866403b-2ccf-462c-8233-c33580ebdc53
+
+	/// Balance con signo (cifra de la tarjeta).
+	measure 'Texto balance' = FORMAT([Balance €], "+#,0 €;−#,0 €;0 €")
+		displayFolder: 05 Facturación
+		lineageTag: 31a7e6d7-4d6a-430a-8754-d1d5dedead48
+
+	/// Bonificación del sprint menos la del sprint anterior.
+	measure 'Variación bonificación' =
+			VAR _o = MAX(Sprint[Orden])
+			RETURN IF(HASONEVALUE(Sprint[Sprint]) && _o > 1,
+					  [Bonus €] - CALCULATE([Bonus €], REMOVEFILTERS(Sprint), Sprint[Orden] = _o - 1))
+		formatString: #,##0 €
+		displayFolder: 05 Facturación
+		lineageTag: 35f983b0-d488-4efb-a36b-2e582b190f66
+
+	/// Penalización del sprint menos la del sprint anterior.
+	measure 'Variación penalización' =
+			VAR _o = MAX(Sprint[Orden])
+			RETURN IF(HASONEVALUE(Sprint[Sprint]) && _o > 1,
+					  [Penalización €] - CALCULATE([Penalización €], REMOVEFILTERS(Sprint), Sprint[Orden] = _o - 1))
+		formatString: #,##0 €
+		displayFolder: 05 Facturación
+		lineageTag: ab8f373f-aed5-4faf-8c21-6abfbf527020
+
+	/// Balance del sprint menos el del sprint anterior.
+	measure 'Variación balance' =
+			VAR _o = MAX(Sprint[Orden])
+			RETURN IF(HASONEVALUE(Sprint[Sprint]) && _o > 1,
+					  [Balance €] - CALCULATE([Balance €], REMOVEFILTERS(Sprint), Sprint[Orden] = _o - 1))
+		formatString: #,##0 €
+		displayFolder: 05 Facturación
+		lineageTag: 2851d110-7700-42ea-b1ad-cf7a75aa4f09
+
+	/// Línea inferior de la tarjeta de bonificación.
+	measure 'Texto variación bonificación' =
+			VAR _d = [Variación bonificación]
+			RETURN IF(ISBLANK(_d), "Sin sprint anterior",
+					  IF(_d > 0, "↗ ", IF(_d < 0, "↘ ", "→ ")) & FORMAT(_d, "+#,0 €;−#,0 €;0 €") & " vs anterior")
+		displayFolder: 05 Facturación
+		lineageTag: 6b1374f4-db45-477a-be05-aaefe2168894
+
+	/// Línea inferior de la tarjeta de penalización.
+	measure 'Texto variación penalización' =
+			VAR _d = [Variación penalización]
+			RETURN IF(ISBLANK(_d), "Sin sprint anterior",
+					  IF(_d > 0, "↗ ", IF(_d < 0, "↘ ", "→ ")) & FORMAT(_d, "+#,0 €;−#,0 €;0 €") & " vs anterior")
+		displayFolder: 05 Facturación
+		lineageTag: 816d335b-4510-4ed5-829e-aad01f686357
+
+	/// Línea inferior de la tarjeta de balance.
+	measure 'Texto variación balance' =
+			VAR _d = [Variación balance]
+			RETURN IF(ISBLANK(_d), "Sin sprint anterior",
+					  IF(_d > 0, "↗ ", IF(_d < 0, "↘ ", "→ ")) & FORMAT(_d, "+#,0 €;−#,0 €;0 €") & " vs anterior")
+		displayFolder: 05 Facturación
+		lineageTag: 6eb4d664-c8d1-45b7-9db9-4f8539a01a87
+
+	/// Verde si la bonificación sube, rojo si baja.
+	measure 'Color variación bonificación' = VAR _d = [Variación bonificación] RETURN SWITCH(TRUE(), ISBLANK(_d) || _d = 0, "#605E5C", _d > 0, "#1E7B5C", "#C0392B")
+		displayFolder: 05 Facturación
+		lineageTag: 8c5321a0-8c76-49bc-9f81-35940cb10399
+
+	/// Verde si la penalización baja, rojo si sube.
+	measure 'Color variación penalización' = VAR _d = [Variación penalización] RETURN SWITCH(TRUE(), ISBLANK(_d) || _d = 0, "#605E5C", _d < 0, "#1E7B5C", "#C0392B")
+		displayFolder: 05 Facturación
+		lineageTag: ae0579ab-f156-4469-8c38-f0c612ccf0cf
+
+	/// Verde si el balance sube, rojo si baja.
+	measure 'Color variación balance' = VAR _d = [Variación balance] RETURN SWITCH(TRUE(), ISBLANK(_d) || _d = 0, "#605E5C", _d > 0, "#1E7B5C", "#C0392B")
+		displayFolder: 05 Facturación
+		lineageTag: c95c6e19-0871-4732-854e-ef70748c3da0
+
+	/// % de la penalización que suman este cliente y los que penalizan más que él (curva de Pareto).
+	measure '% acumulado penalización cliente' =
+			VAR _actual = [Penalización €]
+			VAR _clientes = FILTER(ALLSELECTED(Cliente[Cliente]), [Penalización €] > 0)
+			VAR _total = SUMX(_clientes, [Penalización €])
+			VAR _acum = SUMX(FILTER(_clientes, [Penalización €] >= _actual), [Penalización €])
+			RETURN IF(_actual > 0 && HASONEVALUE(Cliente[Cliente]), DIVIDE(_acum, _total))
+		formatString: 0.0%
+		displayFolder: 05 Facturación
+		lineageTag: 471fb0d6-90c7-48a5-82a0-fbe6383ad801
+
+	/// Etiqueta de detalle de cada barra del Pareto: % acumulado.
+	measure 'Texto acumulado penalización' =
+			VAR _p = [% acumulado penalización cliente]
+			RETURN IF(NOT ISBLANK(_p), "acum. " & FORMAT(_p, "0 %"))
+		displayFolder: 05 Facturación
+		lineageTag: 3efb6066-60de-42e2-b6a1-656b89e6af3a
+
+	/// Color de la barra del Pareto: intenso hasta llegar al 80 % de la penalización, claro el resto.
+	measure 'Color Pareto penalización' =
+			VAR _actual = [Penalización €]
+			VAR _clientes = FILTER(ALLSELECTED(Cliente[Cliente]), [Penalización €] > 0)
+			VAR _total = SUMX(_clientes, [Penalización €])
+			VAR _antes = SUMX(FILTER(_clientes, [Penalización €] > _actual), [Penalización €])
+			-- naranja intenso hasta el cliente que alcanza el 80 % acumulado; naranja claro el resto
+			RETURN IF(_actual > 0, IF(_antes < 0.8 * _total, "#D9692F", "#F2C3A6"))
+		displayFolder: 05 Facturación
+		lineageTag: 342ab676-b092-4e32-9611-344d40a293ec
+
+	/// Título del Pareto: cuántos clientes concentran el 80 % de la penalización.
+	measure 'Título Pareto penalización' =
+			VAR _clientes = FILTER(ALLSELECTED(Cliente[Cliente]), [Penalización €] > 0)
+			VAR _total = SUMX(_clientes, [Penalización €])
+			VAR _n80 =
+				COUNTROWS(
+					FILTER(
+						_clientes,
+						VAR _actual = [Penalización €]
+						RETURN SUMX(FILTER(_clientes, [Penalización €] > _actual), [Penalización €]) < 0.8 * _total
+					)
+				)
+			RETURN
+				IF(
+					COUNTROWS(_clientes) > 0,
+					_n80 & " de " & COUNTROWS(_clientes) & " clientes penalizados concentran el 80 % de la penalización",
+					"Ningún cliente penalizado en el periodo"
+				)
+		displayFolder: 05 Facturación
+		lineageTag: 5eb4d0c8-393c-4b63-a98d-aa4466082f89
+
+	/// Tickets creados en el periodo, en la fila Total o por tipo (vacío en los KPI que no dependen de tickets).
+	measure 'Tickets detalle KPI' =
+			VAR _t = SELECTEDVALUE('Tipo detalle'[Tipo], "Total")
+			RETURN
+				IF(
+					NOT ISBLANK(SELECTEDVALUE('Objetivos KPI'[Id])),
+					IF(
+						_t = "Total",
+						IF(NOT (SELECTEDVALUE('Objetivos KPI'[Id]) IN {8, 9, 10, 11, 15}), [Tickets creados]),
+						IF(
+							NOT (SELECTEDVALUE('Objetivos KPI'[Id]) IN {8, 9, 10, 11, 15}),
+							CALCULATE(
+								IF(NOT (SELECTEDVALUE('Objetivos KPI'[Id]) IN {8, 9, 10, 11, 15}), [Tickets creados]),
+								KEEPFILTERS('Política SLA'[Tipo] = _t)
+							)
+						)
+					)
+				)
+		formatString: #,##0
+		displayFolder: 10 Detalle KPI por tipo
+		lineageTag: 526ac2d2-5850-4bdc-a104-a00844908df0
+
+	/// Tickets que entran en el cálculo de cada KPI (su base; en el backlog, la cartera: abiertos al empezar + entradas); vacío en los KPI que no se calculan con tickets.
+	measure 'Tickets que computan KPI' =
+			VAR _t = SELECTEDVALUE('Tipo detalle'[Tipo], "Total")
+			RETURN
+				IF(
+					NOT ISBLANK(SELECTEDVALUE('Objetivos KPI'[Id])),
+					IF(
+						_t = "Total",
+						SWITCH(
+							SELECTEDVALUE('Objetivos KPI'[Id]),
+							1, [Tickets creados],
+							2, CALCULATE(COUNTROWS(Tickets), REMOVEFILTERS(Calendario), REMOVEFILTERS(Sprint), Tickets[Fecha creación] < MIN(Calendario[Fecha]), ISBLANK(Tickets[Fecha salida]) || Tickets[Fecha salida] >= MIN(Calendario[Fecha])) + [Tickets creados],
+							3, CALCULATE(COUNTROWS(Tickets), Tickets[Resuelto] = TRUE()),
+							4, COUNTROWS(Tickets),
+							5, [Tickets computables],
+							6, [Tickets computables],
+							7, CALCULATE([Tickets computables], 'Política SLA'[Prioridad] = "P1"),
+							12, CALCULATE(COUNTROWS(Tickets), Tickets[Resuelto] = TRUE()),
+							13, COUNT(Tickets[Minutos respuesta]),
+							14, [Tickets creados]
+						),
+						IF(
+							NOT (SELECTEDVALUE('Objetivos KPI'[Id]) IN {8, 9, 10, 11, 15}),
+							CALCULATE(
+								SWITCH(
+									SELECTEDVALUE('Objetivos KPI'[Id]),
+									1, [Tickets creados],
+									2, CALCULATE(COUNTROWS(Tickets), REMOVEFILTERS(Calendario), REMOVEFILTERS(Sprint), Tickets[Fecha creación] < MIN(Calendario[Fecha]), ISBLANK(Tickets[Fecha salida]) || Tickets[Fecha salida] >= MIN(Calendario[Fecha])) + [Tickets creados],
+									3, CALCULATE(COUNTROWS(Tickets), Tickets[Resuelto] = TRUE()),
+									4, COUNTROWS(Tickets),
+									5, [Tickets computables],
+									6, [Tickets computables],
+									7, CALCULATE([Tickets computables], 'Política SLA'[Prioridad] = "P1"),
+									12, CALCULATE(COUNTROWS(Tickets), Tickets[Resuelto] = TRUE()),
+									13, COUNT(Tickets[Minutos respuesta]),
+									14, [Tickets creados]
+								),
+								KEEPFILTERS('Política SLA'[Tipo] = _t)
+							)
+						)
+					)
+				)
+		formatString: #,##0
+		displayFolder: 10 Detalle KPI por tipo
+		lineageTag: 52b9680a-e62c-49a6-9b37-4b612e5399d7
+
+	/// Columna «Valor medido»: tickets que salieron en el periodo (KPI 1, resueltos o cancelados), abiertos al cierre (KPI 2) o que restan al KPI: no resueltos en N1 (KPI 3), escalados (4), fuera de plazo de respuesta (5) o de resolución (6 y 7), o por encima del objetivo de tiempo: más de 17 h de SLA en resolverse (12) o más de 90 min en la 1ª respuesta (13). Vacío en los KPI que son recuentos o ratios.
+	measure 'Tickets incumplidos KPI' =
+			VAR _t = SELECTEDVALUE('Tipo detalle'[Tipo], "Total")
+			RETURN
+				IF(
+					NOT ISBLANK(SELECTEDVALUE('Objetivos KPI'[Id])),
+					IF(
+						_t = "Total",
+						VAR _obj = SELECTEDVALUE('Objetivos KPI'[Objetivo])
+						VAR _n =
+							SWITCH(
+								SELECTEDVALUE('Objetivos KPI'[Id]),
+								1, [Tickets salida],
+								2, [Backlog al cierre],
+								3, CALCULATE(COUNTROWS(Tickets), Tickets[Resuelto] = TRUE())
+									- CALCULATE(COUNTROWS(Tickets), Tickets[Resuelto] = TRUE(), Tickets[Departamento id] = 1, Tickets[Reasignaciones] = 0),
+								4, CALCULATE(COUNTROWS(Tickets), Tickets[Reasignaciones] > 0),
+								5, [Tickets computables] - CALCULATE([Tickets computables], Tickets[Cumple respuesta] = TRUE()),
+								6, [Tickets incumplidos],
+								7, CALCULATE([Tickets incumplidos], 'Política SLA'[Prioridad] = "P1"),
+								12, CALCULATE(COUNTROWS(Tickets), Tickets[Resuelto] = TRUE(), Tickets[Minutos resolución] > _obj * 60),
+								13, CALCULATE(COUNTROWS(Tickets), Tickets[Minutos respuesta] > _obj)
+							)
+						RETURN IF(NOT ISBLANK(_n), _n + 0),
+						IF(
+							NOT (SELECTEDVALUE('Objetivos KPI'[Id]) IN {8, 9, 10, 11, 15}),
+							CALCULATE(
+								VAR _obj = SELECTEDVALUE('Objetivos KPI'[Objetivo])
+								VAR _n =
+									SWITCH(
+										SELECTEDVALUE('Objetivos KPI'[Id]),
+										1, [Tickets salida],
+										2, [Backlog al cierre],
+										3, CALCULATE(COUNTROWS(Tickets), Tickets[Resuelto] = TRUE())
+											- CALCULATE(COUNTROWS(Tickets), Tickets[Resuelto] = TRUE(), Tickets[Departamento id] = 1, Tickets[Reasignaciones] = 0),
+										4, CALCULATE(COUNTROWS(Tickets), Tickets[Reasignaciones] > 0),
+										5, [Tickets computables] - CALCULATE([Tickets computables], Tickets[Cumple respuesta] = TRUE()),
+										6, [Tickets incumplidos],
+										7, CALCULATE([Tickets incumplidos], 'Política SLA'[Prioridad] = "P1"),
+										12, CALCULATE(COUNTROWS(Tickets), Tickets[Resuelto] = TRUE(), Tickets[Minutos resolución] > _obj * 60),
+										13, CALCULATE(COUNTROWS(Tickets), Tickets[Minutos respuesta] > _obj)
+									)
+								RETURN IF(NOT ISBLANK(_n), _n + 0),
+								KEEPFILTERS('Política SLA'[Tipo] = _t)
+							)
+						)
+					)
+				)
+		formatString: #,##0
+		displayFolder: 10 Detalle KPI por tipo
+		lineageTag: 1453e1b6-8ae8-4856-a4bb-4f720cd64d9a
+
+	/// Objetivo del KPI (≥ / ≤), solo en la fila Total: es el mismo para los tres tipos.
+	measure 'Objetivo detalle KPI' =
+			IF(
+				SELECTEDVALUE('Tipo detalle'[Tipo], "Total") = "Total" && NOT ISBLANK(SELECTEDVALUE('Objetivos KPI'[Id])),
+				SUBSTITUTE([Texto objetivo KPI], "Objetivo ", "")
+			)
+		displayFolder: 10 Detalle KPI por tipo
+		lineageTag: b502c3ff-5af2-4095-8209-4842802e85a9
+
+	/// Columna «% cumplimiento»: en los KPI de tiempo (12 y 13), % de tickets dentro del objetivo de tiempo ((computables − incumplidos) ÷ computables); en el backlog (2), % de la cartera del periodo que se cerró (100 % − abiertos al cierre ÷ cartera); en el resto, el valor del KPI.
+	measure 'Valor KPI detalle' =
+			SWITCH(
+				TRUE(),
+				SELECTEDVALUE('Objetivos KPI'[Id]) IN {12, 13},
+					DIVIDE([Tickets que computan KPI] - [Tickets incumplidos KPI], [Tickets que computan KPI]),
+				SELECTEDVALUE('Objetivos KPI'[Id]) = 2,
+					1 - DIVIDE([Tickets incumplidos KPI], [Tickets que computan KPI]),
+				[Media KPI detalle]
+			)
+		displayFolder: 10 Detalle KPI por tipo
+		lineageTag: 4e173d42-2c26-4683-9191-9bff34536147
+
+		formatStringDefinition = IF(SELECTEDVALUE('Objetivos KPI'[Id]) IN {2, 12, 13}, "0.0%", SWITCH(SELECTEDVALUE('Objetivos KPI'[Formato]), "pct", "0.0%", "eur", "#,##0 €", "num", "#,##0", "dec", "0.0", "dec2", "0.00", "h", "0.0"" h""", "min", "0"" min""", "0.0"))
+
+	/// Verde oscuro si el KPI cumple su objetivo (en los de tiempo, si la media lo cumple), rojo oscuro si no.
+	measure 'Color valor KPI detalle' =
+			VAR _v = [Media KPI detalle]
+			VAR _mayor = SELECTEDVALUE('Objetivos KPI'[Sentido]) = "Mayor es mejor"
+			VAR _obj = [Objetivo KPI]
+			RETURN
+				SWITCH(
+					TRUE(),
+					ISBLANK(_v), BLANK(),
+					ISBLANK(_obj), "#1B1F24",
+					(_mayor && _v >= _obj) || (NOT _mayor && _v <= _obj), "#1E6B4A",
+					"#A93226"
+				)
+		displayFolder: 10 Detalle KPI por tipo
+		lineageTag: 76077728-6b62-40b4-bc27-6f1b2d41d59a
+
+	/// Fondo azul muy claro en la fila Total de cada KPI y blanco en las filas por tipo.
+	measure 'Fondo fila detalle KPI' =
+			IF(
+				NOT ISBLANK(SELECTEDVALUE('Objetivos KPI'[Id])),
+				IF(SELECTEDVALUE('Tipo detalle'[Tipo], "Total") = "Total", "#EEF3F9", IF(NOT (SELECTEDVALUE('Objetivos KPI'[Id]) IN {8, 9, 10, 11, 15}), "#FFFFFF"))
+			)
+		displayFolder: 10 Detalle KPI por tipo
+		lineageTag: 4e4609c7-a2a2-4e68-90aa-28f662cdd89d
+
+	/// Penalización del KPI 6 (el único que penaliza): la de cada ticket incumplido, sumada por tipo.
+	measure 'Penalizado KPI €' =
+			VAR _t = SELECTEDVALUE('Tipo detalle'[Tipo], "Total")
+			RETURN
+				IF(
+					NOT ISBLANK(SELECTEDVALUE('Objetivos KPI'[Id])),
+					IF(
+						_t = "Total",
+						VAR _p = [Penalización atribuida €]
+						RETURN IF(SELECTEDVALUE('Objetivos KPI'[Id]) = 6 && _p > 0, _p),
+						IF(
+							NOT (SELECTEDVALUE('Objetivos KPI'[Id]) IN {8, 9, 10, 11, 15}),
+							CALCULATE(
+								VAR _p = [Penalización atribuida €]
+								RETURN IF(SELECTEDVALUE('Objetivos KPI'[Id]) = 6 && _p > 0, _p),
+								KEEPFILTERS('Política SLA'[Tipo] = _t)
+							)
+						)
+					)
+				)
+		formatString: #,##0 €
+		displayFolder: 10 Detalle KPI por tipo
+		lineageTag: 7fe8e1d2-35a9-441f-b159-3f8c32c9f163
+
+	/// Bonificación del KPI 6 repartida entre los tipos de ticket en proporción a sus tickets cumplidos en cada cliente-sprint (la bonificación se calcula por cliente-sprint, no por ticket).
+	measure 'Bonificado KPI €' =
+			VAR _t = SELECTEDVALUE('Tipo detalle'[Tipo], "Total")
+			RETURN
+				IF(
+					NOT ISBLANK(SELECTEDVALUE('Objetivos KPI'[Id])),
+					IF(
+						_t = "Total",
+						IF(
+							SELECTEDVALUE('Objetivos KPI'[Id]) = 6,
+							VAR _b =
+								SUMX(
+									FILTER('Facturación', 'Facturación'[Ajuste] > 0),
+									VAR _c = 'Facturación'[Cliente id]
+									VAR _s = 'Facturación'[Sprint id]
+									VAR _deTipo =
+										CALCULATE([Tickets cumplidos], REMOVEFILTERS(Cliente), REMOVEFILTERS(Sprint),
+												  Cliente[Cliente id] = _c, Sprint[Sprint] = _s)
+									VAR _todos =
+										CALCULATE([Tickets cumplidos], REMOVEFILTERS(Cliente), REMOVEFILTERS(Sprint),
+												  REMOVEFILTERS('Política SLA'), Cliente[Cliente id] = _c, Sprint[Sprint] = _s)
+									RETURN 'Facturación'[Ajuste] * DIVIDE(_deTipo, _todos)
+								)
+							RETURN IF(_b > 0, _b)
+						),
+						IF(
+							NOT (SELECTEDVALUE('Objetivos KPI'[Id]) IN {8, 9, 10, 11, 15}),
+							CALCULATE(
+								IF(
+									SELECTEDVALUE('Objetivos KPI'[Id]) = 6,
+									VAR _b =
+										SUMX(
+											FILTER('Facturación', 'Facturación'[Ajuste] > 0),
+											VAR _c = 'Facturación'[Cliente id]
+											VAR _s = 'Facturación'[Sprint id]
+											VAR _deTipo =
+												CALCULATE([Tickets cumplidos], REMOVEFILTERS(Cliente), REMOVEFILTERS(Sprint),
+														  Cliente[Cliente id] = _c, Sprint[Sprint] = _s)
+											VAR _todos =
+												CALCULATE([Tickets cumplidos], REMOVEFILTERS(Cliente), REMOVEFILTERS(Sprint),
+														  REMOVEFILTERS('Política SLA'), Cliente[Cliente id] = _c, Sprint[Sprint] = _s)
+											RETURN 'Facturación'[Ajuste] * DIVIDE(_deTipo, _todos)
+										)
+									RETURN IF(_b > 0, _b)
+								),
+								KEEPFILTERS('Política SLA'[Tipo] = _t)
+							)
+						)
+					)
+				)
+		formatString: #,##0 €
+		displayFolder: 10 Detalle KPI por tipo
+		lineageTag: 505e95c8-ac11-42bb-92c3-4c2672c3726b
+
+	/// Valor del KPI tal como sale en las tarjetas (en los KPI de tiempo, la media), en la fila Total y por tipo.
+	measure 'Media KPI detalle' =
+			VAR _t = SELECTEDVALUE('Tipo detalle'[Tipo], "Total")
+			RETURN
+				IF(
+					NOT ISBLANK(SELECTEDVALUE('Objetivos KPI'[Id])),
+					IF(
+						_t = "Total",
+						[Valor KPI],
+						IF(
+							NOT (SELECTEDVALUE('Objetivos KPI'[Id]) IN {8, 9, 10, 11, 15}),
+							CALCULATE(
+								[Valor KPI],
+								KEEPFILTERS('Política SLA'[Tipo] = _t)
+							)
+						)
+					)
+				)
+		displayFolder: 10 Detalle KPI por tipo
+		lineageTag: 9ca6ad17-843c-4736-9739-032d070126c1
+
+		formatStringDefinition = SWITCH(SELECTEDVALUE('Objetivos KPI'[Formato]), "pct", "0.0%", "eur", "#,##0 €", "num", "#,##0", "dec", "0.0", "dec2", "0.00", "h", "0.0"" h""", "min", "0"" min""", "0.0")
+
+	/// Columna «Tiempo medio»: la media de los KPI de tiempo (MTTR en horas de SLA, 1ª respuesta en minutos); «No aplica» en el resto.
+	measure 'Tiempo medio detalle' =
+			VAR _m = [Media KPI detalle]
+			RETURN
+				SWITCH(
+					TRUE(),
+					ISBLANK([Fondo fila detalle KPI]), BLANK(),
+					SELECTEDVALUE('Objetivos KPI'[Id]) = 12, IF(NOT ISBLANK(_m), FORMAT(_m, "0.0") & " h"),
+					SELECTEDVALUE('Objetivos KPI'[Id]) = 13, IF(NOT ISBLANK(_m), FORMAT(_m, "0") & " min"),
+					"No aplica"
+				)
+		displayFolder: 10 Detalle KPI por tipo
+		lineageTag: 23936d7e-1984-4eba-b1fd-9f40a54e298b
+
+	/// Color de «Tiempo medio»: verde o rojo según la media frente al objetivo; gris en «No aplica».
+	measure 'Color tiempo medio detalle' =
+			IF(
+				NOT ISBLANK([Fondo fila detalle KPI]),
+				IF(SELECTEDVALUE('Objetivos KPI'[Id]) IN {12, 13}, [Color valor KPI detalle], "#8A9099")
+			)
+		displayFolder: 10 Detalle KPI por tipo
+		lineageTag: 2eb35618-a3ca-40a6-b39e-f042c4e88329
+
+	/// Celda de la matriz como imagen: nº de tickets en grande; debajo, su % dentro del tipo (o del total) y el % facturable («No facturable» en las tareas).
+	measure 'Celda departamento SVG' =
+			VAR _n = [Tickets creados]
+			VAR _tipo = SELECTEDVALUE('Política SLA'[Tipo])
+			VAR _deQue =
+				SWITCH(
+					TRUE(),
+					_tipo = "Incidencia", "de las incidencias",
+					_tipo = "Petición", "de las peticiones",
+					_tipo = "Tarea", "de las tareas",
+					HASONEVALUE(Departamento[Departamento]), "del total",
+					"de los tickets"
+				)
+			VAR _fact = [% impacta en factura]
+			VAR _linea2 = FORMAT([% sobre su tipo], "0.0 %") & " " & _deQue
+			VAR _linea3 = IF(_fact = 0, "No facturable", FORMAT(_fact, "0 %") & " facturable")
+			VAR _svg =
+				"<svg xmlns='http://www.w3.org/2000/svg' width='300' height='64'>"
+					& "<text x='6' y='23' font-family='Segoe UI, sans-serif' font-size='19' font-weight='700' fill='#1B1F24'>"
+					& FORMAT(_n, "#,0") & "</text>"
+					& "<text x='6' y='42' font-family='Segoe UI, sans-serif' font-size='11.5' fill='#3B4048'>" & _linea2 & "</text>"
+					& "<text x='6' y='58' font-family='Segoe UI, sans-serif' font-size='11.5' fill='#3B4048'>" & _linea3 & "</text>"
+					& "</svg>"
+			RETURN
+				IF(
+					_n > 0,
+					"data:image/svg+xml;utf8," & SUBSTITUTE(SUBSTITUTE(_svg, "%", "%25"), "#", "%23")
+				)
+		displayFolder: 09 Tickets por departamento
+		lineageTag: afec50ab-3399-48a1-90df-47e576cc6f2c
+		dataCategory: ImageUrl
+
+	measure 'Tendencia Bonus SVG' = ```
+			
+			VAR SprintActual =
+			    MAX ( 'Sprint'[Sprint] )
+			
+			VAR Periodo =
+			    TOPN (
+			        8,
+			        FILTER (
+			            ALL ( 'Sprint'[Sprint] ),
+			            'Sprint'[Sprint] <= SprintActual
+			        ),
+			        'Sprint'[Sprint], DESC
+			    )
+			
+			VAR Datos =
+			    ADDCOLUMNS (
+			        Periodo,
+			        "@Valor", CALCULATE ( [Bonus €] )
+			    )
+			
+			VAR Minimo = MINX ( Datos, [@Valor] )
+			VAR Maximo = MAXX ( Datos, [@Valor] )
+			VAR Numero = COUNTROWS ( Datos )
+			
+			VAR Puntos =
+			    CONCATENATEX (
+			        Datos,
+			        VAR Posicion =
+			            RANKX (
+			                Periodo,
+			                'Sprint'[Sprint],
+			                ,
+			                ASC,
+			                DENSE
+			            )
+			        VAR X =
+			            8 + DIVIDE ( ( Posicion - 1 ) * 144, Numero - 1, 0 )
+			        VAR Y =
+			            IF (
+			                Maximo = Minimo,
+			                23,
+			                38 - DIVIDE (
+			                    ( [@Valor] - Minimo ) * 30,
+			                    Maximo - Minimo
+			                )
+			            )
+			        RETURN
+			            FORMAT ( X, "0.0", "en-US" ) & ","
+			            & FORMAT ( Y, "0.0", "en-US" ),
+			        " ",
+			        'Sprint'[Sprint], ASC
+			    )
+			
+			RETURN
+			IF (
+			    Numero < 2,
+			    BLANK (),
+			    "data:image/svg+xml;utf8,"
+			        & "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 46'>"
+			        & "<polyline points='" & Puntos
+			        & "' fill='none' stroke='%233478B8'"
+			        & " stroke-width='3' stroke-linecap='round'"
+			        & " stroke-linejoin='round'/>"
+			        & "</svg>"
+			)
+			
+			
+			```
+		displayFolder: 05 Facturación
+		lineageTag: 0384a04a-31df-4074-b396-79c0b4519899
+		dataCategory: ImageUrl
+
+	measure 'Tendencia Penalización SVG' =
+			
+			VAR SprintActual =
+			    MAX ( 'Sprint'[Sprint] )
+			
+			VAR Periodo =
+			    TOPN (
+			        8,
+			        FILTER (
+			            ALL ( 'Sprint'[Sprint] ),
+			            'Sprint'[Sprint] <= SprintActual
+			        ),
+			        'Sprint'[Sprint], DESC
+			    )
+			
+			VAR Datos =
+			    ADDCOLUMNS (
+			        Periodo,
+			        "@Valor", CALCULATE ( [Penalización €] )
+			    )
+			
+			VAR Minimo = MINX ( Datos, [@Valor] )
+			VAR Maximo = MAXX ( Datos, [@Valor] )
+			VAR Numero = COUNTROWS ( Datos )
+			
+			VAR Puntos =
+			    CONCATENATEX (
+			        Datos,
+			        VAR Posicion =
+			            RANKX (
+			                Periodo,
+			                'Sprint'[Sprint],
+			                ,
+			                ASC,
+			                DENSE
+			            )
+			        VAR X =
+			            8 + DIVIDE ( ( Posicion - 1 ) * 144, Numero - 1, 0 )
+			        VAR Y =
+			            IF (
+			                Maximo = Minimo,
+			                23,
+			                38 - DIVIDE (
+			                    ( [@Valor] - Minimo ) * 30,
+			                    Maximo - Minimo
+			                )
+			            )
+			        RETURN
+			            FORMAT ( X, "0.0", "en-US" ) & ","
+			            & FORMAT ( Y, "0.0", "en-US" ),
+			        " ",
+			        'Sprint'[Sprint], ASC
+			    )
+			
+			RETURN
+			IF (
+			    Numero < 2,
+			    BLANK (),
+			    "data:image/svg+xml;utf8,"
+			        & "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 46'>"
+			        & "<polyline points='" & Puntos
+			        & "' fill='none' stroke='%23E68A63'"
+			        & " stroke-width='3' stroke-linecap='round'"
+			        & " stroke-linejoin='round'/>"
+			        & "</svg>"
+			)
+		displayFolder: 05 Facturación
+		lineageTag: 807460dd-bf0a-496c-b950-656d8b68366b
+		dataCategory: ImageUrl
+
+	measure 'Tendencia Balance SVG' =
+			
+			VAR SprintActual =
+			    MAX ( 'Sprint'[Sprint] )
+			
+			VAR Periodo =
+			    TOPN (
+			        8,
+			        FILTER (
+			            ALL ( 'Sprint'[Sprint] ),
+			            'Sprint'[Sprint] <= SprintActual
+			        ),
+			        'Sprint'[Sprint], DESC
+			    )
+			
+			VAR Datos =
+			    ADDCOLUMNS (
+			        Periodo,
+			        "@Valor", CALCULATE ( [Balance €] )
+			    )
+			
+			VAR Minimo = MINX ( Datos, [@Valor] )
+			VAR Maximo = MAXX ( Datos, [@Valor] )
+			VAR Numero = COUNTROWS ( Datos )
+			
+			VAR ColorLinea =
+			    IF ( [Balance €] >= 0, "%232E8B57", "%23C23D38" )
+			
+			VAR Puntos =
+			    CONCATENATEX (
+			        Datos,
+			        VAR Posicion =
+			            RANKX (
+			                Periodo,
+			                'Sprint'[Sprint],
+			                ,
+			                ASC,
+			                DENSE
+			            )
+			        VAR X =
+			            8 + DIVIDE ( ( Posicion - 1 ) * 144, Numero - 1, 0 )
+			        VAR Y =
+			            IF (
+			                Maximo = Minimo,
+			                23,
+			                38 - DIVIDE (
+			                    ( [@Valor] - Minimo ) * 30,
+			                    Maximo - Minimo
+			                )
+			            )
+			        RETURN
+			            FORMAT ( X, "0.0", "en-US" ) & ","
+			            & FORMAT ( Y, "0.0", "en-US" ),
+			        " ",
+			        'Sprint'[Sprint], ASC
+			    )
+			
+			RETURN
+			IF (
+			    Numero < 2,
+			    BLANK (),
+			    "data:image/svg+xml;utf8,"
+			        & "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 46'>"
+			        & "<polyline points='" & Puntos
+			        & "' fill='none' stroke='" & ColorLinea & "'"
+			        & " stroke-width='3' stroke-linecap='round'"
+			        & " stroke-linejoin='round'/>"
+			        & "</svg>"
+			)
+		displayFolder: 05 Facturación
+		lineageTag: c77e8254-b386-4cce-af9b-80da4a227480
+		dataCategory: ImageUrl
+
+	/// Leyenda de la tarjeta de facturación acumulada.
+	measure 'Texto sprints analizados' = DISTINCTCOUNT('Facturación'[Sprint id]) & " sprints analizados"
+		displayFolder: 05 Facturación
+		lineageTag: 5c3fdc50-0148-4694-933b-6689b01f6534
+
+	/// Leyenda de la tarjeta de bonificación acumulada.
+	measure 'Texto % bonificación sobre cuota' = FORMAT(DIVIDE([Bonus €], [Cuota facturada €]) * 100, "0.00") & " % de la facturación"
+		displayFolder: 05 Facturación
+		lineageTag: 079ae7be-51db-437b-91c2-dced4771fcc0
+
+	/// Leyenda de la tarjeta de penalización acumulada.
+	measure 'Texto % penalización sobre cuota' = FORMAT([% Penalización sobre cuota] * 100, "0.00") & " % de la facturación"
+		displayFolder: 05 Facturación
+		lineageTag: 993cd1b1-ed6b-44a1-b61c-014e194bc1d5
+
+	/// Leyenda de la tarjeta de balance económico neto.
+	measure 'Texto % balance sobre cuota' = FORMAT(DIVIDE([Balance €], [Cuota facturada €]) * 100, "0.00;−0.00;0.00") & " % de la facturación"
+		displayFolder: 05 Facturación
+		lineageTag: c6afa9aa-2843-4a6f-8001-df38610e42f9
+
+	/// Rojo si el balance es negativo, verde si es positivo o cero.
+	measure 'Color balance' = IF([Balance €] < 0, "#C0392B", "#1E7B5C")
+		displayFolder: 05 Facturación
+		lineageTag: f68b5a4e-a04d-4df3-bdf6-7ef32db3ddff
+
+	/// Línea discontinua del 80 % en el Pareto de penalización por cliente.
+	measure 'Referencia 80 %' = IF(HASONEVALUE(Cliente[Cliente]) && [Penalización €] > 0, 0.8)
+		formatString: 0%
+		displayFolder: 05 Facturación
+		lineageTag: 050ab8bd-f1fd-499c-8ee8-b0677de47024
+
+	column Medidas
+		dataType: string
+		isHidden
+		lineageTag: c7308420-35bf-4a18-b636-b328c0c43c60
+		summarizeBy: none
+		sourceColumn: [Medidas]
+
+	partition Medidas = calculated
+		mode: import
+		source = ROW("Medidas", "")
+

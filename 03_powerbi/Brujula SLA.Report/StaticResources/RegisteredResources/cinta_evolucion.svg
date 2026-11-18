@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" font-family="Segoe UI, sans-serif">
+<defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#16314F"/><stop offset="0.55" stop-color="#1F3A5F"/><stop offset="1" stop-color="#2E5C8A"/></linearGradient></defs>
+<rect width="1920" height="1080" fill="#F4F6F9"/>
+<rect width="1920" height="96" fill="url(#g)"/>
+<polygon points="1250,96 1312,0 1352,0 1290,96" fill="#FFF" opacity="0.06"/>
+<polygon points="1340,96 1402,0 1462,0 1400,96" fill="#FFF" opacity="0.08"/>
+<polygon points="1450,96 1512,0 1542,0 1480,96" fill="#FFF" opacity="0.06"/>
+<g transform="translate(58,48)"><circle r="28" fill="#FFF" fill-opacity="0.12"/><g transform="scale(1.6)"><polyline points="-11,-11 -11,10 11,10" fill="none" stroke="#FFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.75"/><polyline points="-6,4 -1,-1 3,2 9,-7" fill="none" stroke="#FFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><g fill="#FFF"><circle cx="-6" cy="4" r="2"/><circle cx="-1" cy="-1" r="2"/><circle cx="3" cy="2" r="2"/><circle cx="9" cy="-7" r="2"/></g></g></g>
+<line x1="104" y1="22" x2="104" y2="74" stroke="#FFF" stroke-opacity="0.4" stroke-width="2"/>
+<text x="124" y="34" fill="#C9D6E6" font-size="14" font-weight="700" letter-spacing="1">BRÚJULA SOPORTE IT · SERVICE DESK</text>
+</svg>

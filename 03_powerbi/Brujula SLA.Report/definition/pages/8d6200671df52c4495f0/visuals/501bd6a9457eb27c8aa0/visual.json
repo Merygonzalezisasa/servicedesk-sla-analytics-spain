@@ -1,13 +1,13 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
   "name": "501bd6a9457eb27c8aa0",
   "position": {
     "x": 28,
-    "y": 524,
-    "z": 800,
-    "width": 224,
+    "y": 618,
+    "z": 7000,
     "height": 80,
-    "tabOrder": 800
+    "width": 224,
+    "tabOrder": 7000
   },
   "visual": {
     "visualType": "slicer",
@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "Política SLA.Tipo",
-              "nativeQueryRef": "Tipo"
+              "nativeQueryRef": "Tipo",
+              "active": true
             }
           ]
         }
@@ -75,7 +76,7 @@
             "show": {
               "expr": {
                 "Literal": {
-                  "Value": "true"
+                  "Value": "false"
                 }
               }
             },
@@ -133,7 +134,25 @@
             }
           }
         }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
       ]
+    },
+    "syncGroup": {
+      "groupName": "tipo",
+      "fieldChanges": true,
+      "filterChanges": true
     }
   }
 }

@@ -1,7 +1,7 @@
 # Progreso — Brújula Soporte IT · Service Desk SLA Analytics
 
 ## Estado actual
-**Fase:** 3 (Power BI) · **Paso:** 0 (enfoque) · **Última sesión:** 2026-10-19
+**Fase:** 3 (Power BI) · **Paso:** cierre de la fase (DoD) · **Última sesión:** 2026-11-18
 
 ## Bitácora
 ### Fase 0 — Decidir ✅ (2026-10-15)
@@ -297,7 +297,69 @@ CHECKs (la base rechaza lo que no cumple las reglas del negocio).
 - [x] Página 1 (70 visuales, validación 0 errores): rail de 7 filtros, resumen y 15 KPI en 4 bloques.
       Cambio de la estudiante: solo dos estados (Cumplido / Incumplido) con un único objetivo por KPI.
 - [x] Generadores guardados en `03_powerbi/_generadores/` (build_model.py, build_report.py).
-- [ ] Abrir en Desktop, credenciales, actualizar, captura y revisión de la página 1  ← ACÁ VOY
+- [x] Abierto en Desktop (2026-10-19): corregidas las medidas con error y las referencias del informe;
+      corregido en `build_model.py` el orden de displayFolder, los comentarios de relaciones y las comillas
+      de 'Facturación' (los arreglos a mano en el TMDL se perdían al regenerar).
+- [x] KPI de dos estados (Cumplido / Incumplido) con un único objetivo por KPI (decisión de la estudiante).
+- [x] Todas las medidas en una tabla **Medidas**, ordenadas por carpetas (01 Volumen … 05 Facturación).
+- [x] **Tope por cliente y sprint** (2026-10-20, FICHA §0.3): el ajuste queda entre −3,5 % y +3 % de la cuota
+      del sprint (`v_cumplimiento_sprint.pct_ajuste`; `pct_ajuste_tramo` guarda el del tramo). Penalización
+      2024–2025: de 361.484 € a ~142.513 € (del 3,3 % al 1,3 % de lo facturado).
+      ⚠ Las cifras de las Fases 1–2 de esta bitácora (balance −133.003 / −154.034 €, Pareto 361.484 €) son
+      **sin tope**; las del informe ya van con tope.
+- [x] Aclarado con la estudiante: solo el KPI 6 (% SLA de resolución) penaliza o bonifica en la factura, y solo
+      en Gold y Silver (Bronze sin penalización). En la página 1 el KPI 6 va destacado (borde azul y tarjeta
+      con el impacto en €).
+- [x] Páginas construidas (iteradas con capturas y ejemplos de la estudiante, que retoca en Desktop):
+  - [x] **Inicio** (portada, 2026-11-17): banner con la marca y 5 tarjetas con icono que navegan a cada página.
+  - [x] **Cumplimiento de KPIs**: 15 KPI en 4 bloques con objetivo visible, caja verde/roja de estado,
+        barra de cumplidos/incumplidos en la cabecera.
+  - [x] **Detalle de indicadores** (2026-11-15): matriz KPI → tipo (Incidencia / Petición / Tarea) con
+        objetivo, tickets, computables, valor medido, tiempo medio, % cumplimiento, penalizado y bonificado;
+        botones por bloque de KPI (tabla de parámetros).
+  - [x] **Evolución del cumplimiento** (2026-10-20): cumplidos / incumplidos por sprint + gráficos de SLA y
+        operaciones.
+  - [x] **Resultado económico del sprint**: 4 tarjetas (facturado, bonificación, penalización, balance con
+        variación frente al sprint anterior), barras divergentes bonificación / penalización y matriz de
+        clientes Gold y Silver (umbral, % SLA, tickets, ✓ / ✗).
+  - [x] **Impacto económico acumulado** (2026-11-18): 4 tarjetas con leyenda (facturación, bonificación,
+        penalización y balance neto en verde / rojo), evolución por sprint y **Pareto** de penalización por
+        cliente (columnas y líneas nativo, línea del 80 %): 14 de 22 clientes suman el 80 %.
+  - [x] **Riesgo por cliente** y **Tickets por departamento** (incidencias / peticiones / tareas por
+        departamento, % sobre su tipo y % facturable).
+- [x] Diseño común (2026-11-16 → 18): cinta azul con icono y título en todas las páginas, pestañas entre
+      las 5 páginas principales, panel de filtros a la izquierda, botones **← Atrás** y **⌂ Inicio**.
+      Las páginas de análisis quedan ocultas: se navega desde la portada.
+- [x] Visuales de AppSource probados: se quedan «Line & Stacked Column with Table» (evolución económica).
+      «Pareto Chart Pro» se sustituyó por el gráfico nativo (no se podía controlar su formato). Página de
+      Deneb preparada (`add_pagina_deneb.py`), sin aplicar.
+- [x] Generadores: `build_model.py` (modelo, fiable) y scripts `add_*.py` por página en
+      `03_powerbi/_generadores/`. `build_report.py` ya **no** reproduce las páginas rediseñadas en Desktop:
+      no regenerar el informe entero.
+- [x] Explicaciones dadas a la estudiante: KPI uno a uno con filtros, tabla Objetivos KPI, niveles de contrato,
+      tipo y prioridad, MTTR, ritmo de cierre, backlog, por qué el sprint 2025-17 sale tan mal, importancia del
+      Pareto (80 % = 59.205 € en 2025 concentrado en 14 clientes).
+- Desviación de la plantilla (decisión consciente): la Parte 6 pide 2 páginas y 6–7 visuales por página; el
+  informe tiene 8 páginas con navegación (la estudiante prefirió un informe completo tipo producto).
+
+**Pendiente para cerrar la Fase 3 (Definition of Done):**
+- [ ] **Página de análisis estratégico ("¿por qué?")**: el cruce con el contexto externo (calor > 35 °C,
+      post-festivo, vacaciones de agosto) todavía no está en el informe. Rematar con la frase accionable.
+      **Pospuesta por la estudiante (2026-11-18)**: se publica lo hecho y se retoma más adelante.
+      Propuesta guardada: página «Factores de contexto» (6.ª pestaña y 6.ª tarjeta de la portada; filtros
+      Año y Nivel de contrato): ① líneas por mes, área % agentes ausentes + línea % cumplimiento;
+      ② tarjeta r ausencias ↔ cumplimiento; ③ recomendación; ④ barras horizontales tickets por día
+      laborable según tipo de día; ⑤ columnas Infra P1/P2 por día > 35 °C vs ≤ 35 °C solo jul–ago;
+      ⑥ dispersión de clientes (tickets × % incumplimiento, tamaño = penalización). Medidas nuevas:
+      Tickets por día laborable, Incidencias Infra P1/P2 por día, Correlación ausencias-cumplimiento.
+- [ ] `03_powerbi/measures_documentation.md`: documentar las 106 medidas por familia (una frase cada una).
+- [ ] Capturas PNG de cada página en `03_powerbi/screenshots/` (vacía) para el README y LinkedIn.
+- [ ] Comprobar que el informe responde visualmente al menos 3 preguntas de la Ficha (P1 cumplimiento,
+      P2 balance / Pareto, P5 backlog ya cubiertas; falta P3 / P4 contexto externo).
+- [ ] **Commit y publicación** (Fase 3 en curso, sin cerrar): desde `af67fd6` (2026-10-19) nada está
+      subido: informe, modelo, generadores, FICHA (tope) y `02_sql/02_create_views.sql` (tope).  ← ACÁ VOY
+- [ ] Re-ejecutar `02_create_views.sql` + `sp_calcular_facturacion_anio` con el tope y revisar
+      `verificar_carga.py` / las cifras de control (ahora con tope).
 - [ ] Decidir: ¿Objetivos KPI a PostgreSQL (CSV de configuración)?
 
 ## Dudas abiertas

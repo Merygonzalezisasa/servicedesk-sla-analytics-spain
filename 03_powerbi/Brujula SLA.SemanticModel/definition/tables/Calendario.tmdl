@@ -1,111 +1,125 @@
 /// Un día por fila (2024-01-01 → 2026-01-02): calendario laboral de Madrid, sprint, clima real y ausencias.
 table Calendario
+	lineageTag: a9dad9d9-ecc7-4450-85eb-6a5cec8f0163
 	dataCategory: Time
-
-	/// Agentes ausentes (vacaciones o baja) ÷ agentes en plantilla, en días laborables.
-	measure '% Agentes ausentes' = ```
-			CALCULATE(
-				DIVIDE(SUM(Calendario[Agentes ausentes]), SUM(Calendario[Agentes activos])),
-				Calendario[Laborable] = TRUE()
-			)
-			```
-		formatString: 0.0%
-		displayFolder: Contexto
-
-	/// Tickets que entran ÷ agentes disponibles-día laborable (aproximación a la carga/utilización).
-	measure 'Tickets por agente y día' = ```
-			DIVIDE(
-				[Tickets creados],
-				CALCULATE(SUM(Calendario[Agentes activos]) - SUM(Calendario[Agentes ausentes]), Calendario[Laborable] = TRUE())
-			)
-			```
-		formatString: 0.00
-		displayFolder: Contexto
 
 	column Fecha
 		dataType: dateTime
+		isKey
 		formatString: dd/mm/yyyy
+		lineageTag: eb4f8ec4-ae3c-4971-bad5-41d4cb215764
 		summarizeBy: none
 		sourceColumn: fecha
-		isKey
+
 	column 'Año natural'
 		dataType: int64
+		lineageTag: 47234978-00a8-46ce-8118-0cd15ada4c8e
 		summarizeBy: none
 		sourceColumn: anio
+
 	column 'Mes número'
 		dataType: int64
 		isHidden
+		lineageTag: a267dc15-efbb-4ad9-b769-3e7f02501586
 		summarizeBy: none
 		sourceColumn: mes
+
 	column Mes
 		dataType: string
+		lineageTag: 05934914-76fb-4496-9fc7-27153f911928
 		summarizeBy: none
 		sourceColumn: mes_nombre
 		sortByColumn: 'Mes número'
+
 	column 'Año-Mes número'
 		dataType: int64
 		isHidden
+		lineageTag: 6f9a8088-b132-4b76-8478-daa9a5d9c4be
 		summarizeBy: none
 		sourceColumn: anio_mes_num
-	column 'Año-Mes'
+
+	column Año-Mes
 		dataType: string
+		lineageTag: 5f6126e6-c8ec-49d3-b291-aef9bfd18641
 		summarizeBy: none
 		sourceColumn: anio_mes
 		sortByColumn: 'Año-Mes número'
+
 	column 'Día de la semana'
 		dataType: int64
 		isHidden
+		lineageTag: ce4a1a8b-04cc-4b7d-87b5-eda3b2891321
 		summarizeBy: none
 		sourceColumn: dia_semana
+
 	column 'Sprint id'
 		dataType: string
 		isHidden
+		lineageTag: 2b86c01e-60fc-46be-8556-bdb56ea09fd2
 		summarizeBy: none
 		sourceColumn: sprint_id
+
 	column Laborable
 		dataType: boolean
+		lineageTag: 5a0bc097-ff1f-4a20-bf2f-ce8b01d6b7a8
 		summarizeBy: none
 		sourceColumn: es_laborable
+
 	column 'Festivo Madrid'
 		dataType: boolean
+		lineageTag: 447def7a-d649-4d56-a2e9-87f45eb10cef
 		summarizeBy: none
 		sourceColumn: es_festivo_madrid
+
 	column Festivo
 		dataType: string
+		lineageTag: 05d5033c-279a-46d7-9216-1e2849c59d79
 		summarizeBy: none
 		sourceColumn: nombre_festivo
+
 	/// Post-festivo, Lunes, Resto de laborables o No laborable
 	column 'Tipo de día'
 		dataType: string
+		lineageTag: cc7bb962-6fa6-4b8e-a08b-cf0f59af3af8
 		summarizeBy: none
 		sourceColumn: tipo_dia
+
 	column 'Temperatura máxima'
 		dataType: decimal
 		formatString: 0.0" °C"
+		lineageTag: 20b982c9-3391-4c31-9794-03048ad971df
 		summarizeBy: none
 		sourceColumn: temp_max
+
 	/// > 35 °C o ≤ 35 °C (Open-Meteo, Madrid)
 	column 'Día caluroso'
 		dataType: string
+		lineageTag: 3cf5b8b6-6072-4201-81ba-6c223fa69f9a
 		summarizeBy: none
 		sourceColumn: dia_caluroso
+
 	column 'Incidencias Infra P1/P2'
 		dataType: int64
 		isHidden
+		lineageTag: 19f97179-7987-4ab1-98e1-abaa2553fb9e
 		summarizeBy: none
 		sourceColumn: infra_p1_p2_creados
+
 	column 'Agentes activos'
 		dataType: int64
 		isHidden
+		lineageTag: 47d504f9-0fd4-425b-9d19-af62ee86f7c7
 		summarizeBy: none
 		sourceColumn: agentes_activos
+
 	column 'Agentes ausentes'
 		dataType: int64
 		isHidden
+		lineageTag: 2965abff-76d6-4708-afe6-451de6a45b9a
 		summarizeBy: none
 		sourceColumn: agentes_ausentes
 
-	partition 'Calendario' = m
+	partition Calendario = m
 		mode: import
 		source =
 				let
@@ -132,3 +146,4 @@ table Calendario
 						{"agentes_ausentes", Int64.Type}, {"es_laborable", type logical}, {"es_festivo_madrid", type logical}})
 				in
 					#"Cambiados tipos"
+

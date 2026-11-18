@@ -1,13 +1,13 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
   "name": "e6245dd2e0432a6277fd",
   "position": {
     "x": 524,
-    "y": 518,
-    "z": 3700,
-    "width": 132,
+    "y": 574,
+    "z": 39000,
     "height": 56,
-    "tabOrder": 3700
+    "width": 132,
+    "tabOrder": 39000
   },
   "visual": {
     "visualType": "cardVisual",
@@ -20,13 +20,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Objetivos KPI"
+                      "Entity": "Medidas"
                     }
                   },
                   "Property": "Variación KPI texto"
                 }
               },
-              "queryRef": "Objetivos KPI.Variación KPI texto",
+              "queryRef": "Medidas.Variación KPI texto",
               "nativeQueryRef": "Variación KPI texto"
             }
           ]
@@ -65,7 +65,7 @@
                     "Measure": {
                       "Expression": {
                         "SourceRef": {
-                          "Entity": "Objetivos KPI"
+                          "Entity": "Medidas"
                         }
                       },
                       "Property": "Color variación"

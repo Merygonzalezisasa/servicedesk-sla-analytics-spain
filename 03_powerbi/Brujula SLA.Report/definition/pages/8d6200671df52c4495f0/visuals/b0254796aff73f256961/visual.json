@@ -1,13 +1,13 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
   "name": "b0254796aff73f256961",
   "position": {
     "x": 1096,
-    "y": 842,
-    "z": 6400,
+    "y": 886,
+    "z": 75000,
+    "height": 140,
     "width": 380,
-    "height": 150,
-    "tabOrder": 6400
+    "tabOrder": 75000
   },
   "visual": {
     "visualType": "cardVisual",
@@ -20,13 +20,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Objetivos KPI"
+                      "Entity": "Medidas"
                     }
                   },
                   "Property": "Valor KPI"
                 }
               },
-              "queryRef": "Objetivos KPI.Valor KPI",
+              "queryRef": "Medidas.Valor KPI",
               "nativeQueryRef": "Valor KPI",
               "displayName": "Tickets por agente y día"
             }
@@ -233,7 +233,33 @@
             "show": {
               "expr": {
                 "Literal": {
-                  "Value": "false"
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "ThemeDataColor": {
+                      "ColorId": 0,
+                      "Percent": -0.2
+                    }
+                  }
+                }
+              }
+            },
+            "width": {
+              "expr": {
+                "Literal": {
+                  "Value": "1.0D"
+                }
+              }
+            },
+            "radius": {
+              "expr": {
+                "Literal": {
+                  "Value": "12.0D"
                 }
               }
             }

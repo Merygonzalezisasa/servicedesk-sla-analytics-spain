@@ -1,22 +1,28 @@
 /// Grupos resolutores. Todo ticket entra por Service Desk N1.
 table Departamento
+	lineageTag: 1a9de4aa-88a3-4ebc-87ac-1e6eedad06b2
 
 	column 'Departamento id'
 		dataType: int64
 		isHidden
+		isKey
+		lineageTag: 81697f97-1c78-4271-bb28-0b6521b2dc16
 		summarizeBy: none
 		sourceColumn: departamento_id
-		isKey
+
 	column Departamento
 		dataType: string
+		lineageTag: d2bf3378-4038-4a65-abfc-e3b9c878baae
 		summarizeBy: none
 		sourceColumn: nombre
+
 	column 'Nivel de soporte'
 		dataType: string
+		lineageTag: df45ff4e-3095-4641-9d5c-fa6d808ecb40
 		summarizeBy: none
 		sourceColumn: nivel_soporte
 
-	partition 'Departamento' = m
+	partition Departamento = m
 		mode: import
 		source =
 				let
@@ -26,3 +32,4 @@ table Departamento
 					#"Cambiados tipos" = Table.TransformColumnTypes(#"Seleccionadas columnas", {{"departamento_id", Int64.Type}})
 				in
 					#"Cambiados tipos"
+

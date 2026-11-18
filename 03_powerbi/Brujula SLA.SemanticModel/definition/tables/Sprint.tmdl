@@ -1,60 +1,73 @@
 /// Sprints de 3 semanas (lunes → viernes de la 3ª). Unidad de medición del SLA y de facturación.
 table Sprint
-
-	/// Sprint elegido en los filtros, con sus fechas.
-	measure 'Periodo seleccionado' = ```
-			IF(
-				HASONEVALUE(Sprint[Sprint]),
-				"Sprint " & SELECTEDVALUE(Sprint[Periodo]),
-				"Varios sprints (" & COUNTROWS(VALUES(Sprint[Sprint])) & ")"
-			)
-			```
-		displayFolder: Sprint
+	lineageTag: e8f58cea-fc35-4c4a-8b20-91f7e7ceecb9
 
 	/// AAAA-NN por el año en que empieza
 	column Sprint
 		dataType: string
+		isKey
+		lineageTag: c5e50d58-1297-4766-bc63-c693a843c219
 		summarizeBy: none
 		sourceColumn: sprint_id
-		isKey
 		sortByColumn: Orden
+
 	/// Año del sprint (2024-18 acaba en enero de 2025 pero es de 2024)
 	column Año
 		dataType: int64
+		lineageTag: b6280b03-7281-40e0-9e11-130c6cd5de57
 		summarizeBy: none
 		sourceColumn: anio_sprint
+
 	column Número
 		dataType: int64
+		lineageTag: 5229d08e-9f25-4374-bf03-0aee291af972
 		summarizeBy: none
 		sourceColumn: numero
+
 	/// Sprint con sus fechas, p. ej. 2024-11 · 29/07–16/08
 	column Periodo
 		dataType: string
+		lineageTag: b7ad5aca-636b-420a-a618-6c224da1d227
 		summarizeBy: none
 		sourceColumn: periodo
 		sortByColumn: Orden
+
 	column Inicio
 		dataType: dateTime
 		formatString: dd/mm/yyyy
+		lineageTag: d24cf43d-aeca-4bd0-9c5c-4e04feef455c
 		summarizeBy: none
 		sourceColumn: fecha_inicio
+
 	column Fin
 		dataType: dateTime
 		formatString: dd/mm/yyyy
+		lineageTag: b6a34f0a-7150-4f63-908b-91b7b088db3a
 		summarizeBy: none
 		sourceColumn: fecha_fin
+
 	column 'Días laborables'
 		dataType: int64
+		lineageTag: 28ce8c94-83e3-466c-b019-e5722eed5388
 		summarizeBy: none
 		sourceColumn: dias_laborables
+
 	/// Posición del sprint (1 = 2024-01): sirve para encontrar el sprint anterior
 	column Orden
 		dataType: int64
 		isHidden
+		lineageTag: dfbc3bf9-ad38-4514-ae2a-a28e4c86954d
 		summarizeBy: none
 		sourceColumn: orden
 
-	partition 'Sprint' = m
+	/// Etiqueta corta para ejes: año completo solo en el primer sprint del año
+	column 'Etiqueta eje' = IF(Sprint[Número] = 1, Sprint[Sprint], FORMAT(Sprint[Número], "00") & REPT(UNICHAR(8203), Sprint[Año] - 2024))
+		dataType: string
+		lineageTag: bf942e80-faa5-4e96-805a-1bedc9986b7f
+		summarizeBy: none
+		sortByColumn: Orden
+
+	partition Sprint = m
 		mode: import
 		source =
 				let
@@ -70,3 +83,4 @@ table Sprint
 						{"fecha_inicio", type date}, {"fecha_fin", type date}})
 				in
 					#"Cambiados tipos"
+

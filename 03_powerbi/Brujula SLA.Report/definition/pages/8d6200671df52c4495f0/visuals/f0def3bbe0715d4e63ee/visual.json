@@ -1,13 +1,13 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
   "name": "f0def3bbe0715d4e63ee",
   "position": {
     "x": 28,
-    "y": 432,
-    "z": 700,
-    "width": 224,
+    "y": 526,
+    "z": 6000,
     "height": 80,
-    "tabOrder": 700
+    "width": 224,
+    "tabOrder": 6000
   },
   "visual": {
     "visualType": "slicer",
@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "Departamento.Departamento",
-              "nativeQueryRef": "Departamento"
+              "nativeQueryRef": "Departamento",
+              "active": true
             }
           ]
         }
@@ -75,7 +76,7 @@
             "show": {
               "expr": {
                 "Literal": {
-                  "Value": "true"
+                  "Value": "false"
                 }
               }
             },
@@ -133,7 +134,25 @@
             }
           }
         }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
       ]
+    },
+    "syncGroup": {
+      "groupName": "departamento",
+      "fieldChanges": true,
+      "filterChanges": true
     }
   }
 }

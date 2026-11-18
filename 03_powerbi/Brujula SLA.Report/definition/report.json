@@ -1,5 +1,5 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/3.0.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/3.3.0/schema.json",
   "themeCollection": {
     "customTheme": {
       "name": "BrujulaSLA-7c2e9a41.json",
@@ -11,15 +11,157 @@
       "type": "RegisteredResources"
     }
   },
+  "objects": {
+    "outspacePane": [
+      {
+        "properties": {
+          "expanded": {
+            "expr": {
+              "Literal": {
+                "Value": "false"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "publicCustomVisuals": [
+    "pieChartNewAA90D11FDE2D45BBADC4383C1313084F",
+    "Multi_target_KPI",
+    "BarChartWithTopN",
+    "lineStackedColumnMatrixADACEA3309644A92B1A6D50A68C81088",
+    "ParetoChartPro1A2B3C4D5E6F7A8B9C0D"
+  ],
   "resourcePackages": [
     {
       "name": "RegisteredResources",
       "type": "RegisteredResources",
       "items": [
         {
+          "name": "balance-de-peso9759595780284438.png",
+          "path": "balance-de-peso9759595780284438.png",
+          "type": "Image"
+        },
+        {
+          "name": "balance-de-peso9854340694944405.png",
+          "path": "balance-de-peso9854340694944405.png",
+          "type": "Image"
+        },
+        {
           "name": "BrujulaSLA-7c2e9a41.json",
           "path": "BrujulaSLA-7c2e9a41.json",
           "type": "CustomTheme"
+        },
+        {
+          "name": "calendar2025322747156103.png",
+          "path": "calendar2025322747156103.png",
+          "type": "Image"
+        },
+        {
+          "name": "cinta_alerta.svg",
+          "path": "cinta_alerta.svg",
+          "type": "Image"
+        },
+        {
+          "name": "cinta_barras.svg",
+          "path": "cinta_barras.svg",
+          "type": "Image"
+        },
+        {
+          "name": "cinta_euro.svg",
+          "path": "cinta_euro.svg",
+          "type": "Image"
+        },
+        {
+          "name": "cinta_evolucion.svg",
+          "path": "cinta_evolucion.svg",
+          "type": "Image"
+        },
+        {
+          "name": "cinta_lista.svg",
+          "path": "cinta_lista.svg",
+          "type": "Image"
+        },
+        {
+          "name": "cinta_objetivo.svg",
+          "path": "cinta_objetivo.svg",
+          "type": "Image"
+        },
+        {
+          "name": "cinta_organigrama.svg",
+          "path": "cinta_organigrama.svg",
+          "type": "Image"
+        },
+        {
+          "name": "click_(1)06454816186468304.png",
+          "path": "click_(1)06454816186468304.png",
+          "type": "Image"
+        },
+        {
+          "name": "click20508887458622183.png",
+          "path": "click20508887458622183.png",
+          "type": "Image"
+        },
+        {
+          "name": "factura_(2)1715294842054471.png",
+          "path": "factura_(2)1715294842054471.png",
+          "type": "Image"
+        },
+        {
+          "name": "factura_(2)770114189421263.png",
+          "path": "factura_(2)770114189421263.png",
+          "type": "Image"
+        },
+        {
+          "name": "factura_(2)7712162558441288.png",
+          "path": "factura_(2)7712162558441288.png",
+          "type": "Image"
+        },
+        {
+          "name": "factura_(2)9070524958173423.png",
+          "path": "factura_(2)9070524958173423.png",
+          "type": "Image"
+        },
+        {
+          "name": "inicio_fondo.svg",
+          "path": "inicio_fondo.svg",
+          "type": "Image"
+        },
+        {
+          "name": "proyecto-de-ley12362530952463169.png",
+          "path": "proyecto-de-ley12362530952463169.png",
+          "type": "Image"
+        },
+        {
+          "name": "proyecto-de-ley190237228732137.png",
+          "path": "proyecto-de-ley190237228732137.png",
+          "type": "Image"
+        },
+        {
+          "name": "proyecto-de-ley7519412114647589.png",
+          "path": "proyecto-de-ley7519412114647589.png",
+          "type": "Image"
+        },
+        {
+          "name": "tarjeta-roja_(2)684237879054635.png",
+          "path": "tarjeta-roja_(2)684237879054635.png",
+          "type": "Image"
+        },
+        {
+          "name": "tarjeta-roja_(2)6928830393563888.png",
+          "path": "tarjeta-roja_(2)6928830393563888.png",
+          "type": "Image"
+        },
+        {
+          "name": "tarjeta-roja_(2)9066008081961563.png",
+          "path": "tarjeta-roja_(2)9066008081961563.png",
+          "type": "Image"
+        },
+        {
+          "name": "ticket_(1)6753548321552881.png",
+          "path": "ticket_(1)6753548321552881.png",
+          "type": "Image"
         }
       ]
     }

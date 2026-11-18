@@ -116,6 +116,12 @@ sprint. Los importes se **acumulan y se liquidan al cierre del año** (decidido 
 | **Silver** | ≥ 95 % → **+2 %** | 90–95 % → 0 % | 85–90 % → −5 % | — | < 85 % → **−10 %** |
 | **Bronze** | ≥ 92 % → **+1 %** | < 92 % → 0 % | — | — | **Sin penalización** (decidido) |
 
+- **Tope por cliente y sprint** (decidido el 2026-10-20): el ajuste aplicado nunca supera el **+3 %** de bonus
+  ni el **−3,5 %** de penalización sobre la cuota del sprint. El tramo se sigue calculando igual
+  (`pct_ajuste_tramo`), pero los € se calculan con el % ya limitado (`pct_ajuste`). En la práctica, el
+  bonus no cambia (el máximo ya es +3 %) y los tramos de −5 %, −10 % y −15 % quedan en −3,5 %. Sobre los
+  datos de 2024–2025, la penalización baja de 361.484 € a ~142.513 € (del 3,3 % al 1,3 % de lo facturado).
+
 - **Qué cuenta para el % del sprint:** solo los tickets **con impacto en la penalización**, es decir,
   **incidencias y peticiones**, no cancelados, cuyo resultado se conoce en ese sprint (regla de las
   dos fechas, §0.4). Las tareas son trabajo interno:
