@@ -459,6 +459,9 @@ Plan aprobado: `04_analysis/eda_completo.ipynb`, bloques 0 · 0.1 · 1 descripti
 - [x] `insights_findings.md` con 7 hallazgos en formato dato / interpretación / acción.
 - [x] Al menos un hallazgo contraintuitivo o negativo (④ N1; calor sin efecto; perfiles débiles).
 - [x] Commit `3257f74` subido (2026-11-19) con el cuaderno ejecutado en limpio. **Fase 4 cerrada.**
+- [x] (2026-11-19) Textos del cuaderno sustituidos por la versión revisada por la estudiante (23 celdas de
+      explicación, lenguaje más formal; sin las preguntas de control, que quedan en esta bitácora). Código y
+      salidas sin cambios. Corregidas 2 erratas («una grupo», «:» sobrante).
 
 **Siguiente:** cerrar la Fase 3 (página «Factores de contexto», measures_documentation.md, capturas) y Fase 5 (README, business_case.md, data_dictionary.md).  ← ACÁ VOY
 
