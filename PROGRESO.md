@@ -1,7 +1,7 @@
 # Progreso — Brújula Soporte IT · Service Desk SLA Analytics
 
 ## Estado actual
-**Fase:** 3 (Power BI) · **Paso:** cierre de la fase (DoD) · **Última sesión:** 2026-11-18
+**Fase:** 4 (Análisis Python; la 3 sigue abierta) · **Paso:** bloques 0 y 0.1 · **Última sesión:** 2026-11-18
 
 ## Bitácora
 ### Fase 0 — Decidir ✅ (2026-10-15)
@@ -357,10 +357,108 @@ CHECKs (la base rechaza lo que no cumple las reglas del negocio).
 - [ ] Comprobar que el informe responde visualmente al menos 3 preguntas de la Ficha (P1 cumplimiento,
       P2 balance / Pareto, P5 backlog ya cubiertas; falta P3 / P4 contexto externo).
 - [ ] **Commit y publicación** (Fase 3 en curso, sin cerrar): desde `af67fd6` (2026-10-19) nada está
-      subido: informe, modelo, generadores, FICHA (tope) y `02_sql/02_create_views.sql` (tope).  ← ACÁ VOY
+      subido: informe, modelo, generadores, FICHA (tope) y `02_sql/02_create_views.sql` (tope).
+      ✅ Hecho el 2026-11-18: commit `3f73b14` subido (con el PBIX actualizado).
 - [ ] Re-ejecutar `02_create_views.sql` + `sp_calcular_facturacion_anio` con el tope y revisar
       `verificar_carga.py` / las cifras de control (ahora con tope).
 - [ ] Decidir: ¿Objetivos KPI a PostgreSQL (CSV de configuración)?
+
+### Fase 4 — Análisis en Python 🚧 (empezada el 2026-11-18, con la Fase 3 aún abierta)
+Plan aprobado: `04_analysis/eda_completo.ipynb`, bloques 0 · 0.1 · 1 descriptivo · 2 estacionalidad ·
+3 Pareto · 4 contexto externo · 5 perfiles (K-Means) · 6 previsión (Prophet) · 7 riesgo (logística) ·
+8 hallazgos. Bloque a bloque: el agente lo escribe, la estudiante lo ejecuta y pega la salida.
+- [x] Bloques 0 y 0.1 escritos y probados en kernel limpio: 0 duplicados; todos los nulos los explica el
+      estado del ticket (cancelados, abiertos, cumplidos); 12 reglas de valores imposibles con 0 filas;
+      penalización cuadrada en 4 vistas (142.513 € con tope); balance −31.743 € (2024) / −36.322 € (2025);
+      240 tickets sin agente (228 cancelados antes de asignar + 12 abiertos). PNG `00_calidad_datos.png`.
+- [x] Ejecución de la estudiante (bloque 0: 5 vistas, mismas filas que la prueba).
+- [x] Pregunta de control (¿`fecha_incumplimiento` vacía en el 92 % es un problema?): bien — "si no se
+      incumplieron, está bien que esté en blanco". Matiz añadido: un nulo con significado se valida en
+      las dos direcciones (los 1.912 incumplidos tienen fecha, los 22.552 cumplidos y los 836 sin medir no)
+      y no se rellena con una fecha inventada.
+- [x] Cuadres de la estudiante: 142.513 € en las 4 vistas, balance −31.743 / −36.322 €. Lectura del 0.1
+      escrita en el cuaderno (datos aptos sin limpieza adicional).
+- [x] Bloque 1 (descriptivo, P1) escrito y probado: % de SLA consumido por prioridad (mediana ~40–44 %,
+      p95 ~110–115 %); incumplimiento P1 6,9 % · P2 7,2 % · P3 8,1 % · P4 7,8 %; atípicos IQR 4–6 %,
+      con el doble de escalados (≈ 65 % vs 33 %) → adelanta la correlación 4. Clientes-año bajo objetivo:
+      Gold 4/8 (2024) y 7/8 (2025). Sprints deficientes: Gold 43 %, Silver 39 %; al borde (< 1 punto):
+      Gold 18 %. PNG `01_distribucion.png`.
+- [x] Pregunta de control (¿por qué % de SLA consumido y no horas?): bien en lo principal ("ya calcula
+      para cada prioridad su valor de medición"). Matiz: no es "más confiable" sino **comparable** —
+      normaliza cada ticket contra su propio objetivo (100 % = el límite para todos); en horas un P4
+      siempre parecería peor aunque cumpla. Las horas siguen sirviendo para planificar (MTTR).
+- [x] Salida del bloque 1 de la estudiante: coincide con la prueba. Lectura del bloque 1 escrita.
+- [x] Bloque 2 (estacionalidad, P3) escrito y probado: volumen plano todo el año (~50 tickets/día
+      laborable) salvo agosto (44,7), y aun así agosto es el peor mes (80,8 % de cumplimiento con 32 % de
+      ausentes; jul 89,6 %, dic 90,6 %). Lunes 55,5 → viernes 42,2 tickets/día. Post-festivo: 68,9 tickets
+      vs 55,5 un lunes (+24 %, Mann-Whitney p = 3·10⁻⁵, n = 19 días) y los tickets creados ese día cumplen
+      87,0 % vs 93,1 %. PNG `02_estacionalidad.png`.
+- [x] Ejecución de la estudiante (gráfico OK) + pregunta de control del bloque 2: bien — "es una cuestión
+      de capacidad". Matiz en la lectura: en agosto coinciden vacaciones y calor; se separan en el bloque 4.
+- [x] Bloque 3 (Pareto ABC, P2) escrito y probado: cuota 10.973.784 €, bonus 74.447 € (0,68 %),
+      penalización 142.513 € (1,30 %), balance −68.066 € (−0,62 %). Sin 80/20 clásico: 7 de 10
+      departamento × tipo y 14 de 22 clientes (8 Gold + 6 Silver) suman el 80 %. N1: 4,3 % de
+      incumplimiento pero 36,6 % de la penalización (volumen); Desarrollo 32,7 % pero 14,8 %. Tareas fuera
+      (no facturan). PNG `03_pareto.png`.
+- [x] Ejecución de la estudiante (gráfico OK) + pregunta de control del bloque 3: a medias. Mal la causa
+      («N1 tiene más P1»): sus P1 solo suman 1.255 € de 52.194 € (2 %); la causa es el **volumen**
+      (65 % de los tickets → 686 incumplidos con un 4,3 %). Bien el «importe» para decidir la inversión;
+      matiz: tasa = dónde está roto el proceso, importe = dónde está el dinero; 1 punto en N1 ≈ 160 tickets/año.
+- [x] Bloque 4 (contexto externo, P3) escrito y probado: todo el año, días > 35 °C cumplen 87,5 % vs
+      92,8 % (con confusión: 21,5 % vs 7,4 % ausentes). Solo jul–ago (ausencias iguales 25,4 / 25,6 %):
+      Infra P1/P2 1,13 vs 0,55 por día (×2, p = 0,003) pero cumplimiento 85,7 vs 85,3 % (sin efecto).
+      Mes a mes: r ausencias = −0,92, r calor = −0,67; regresión con las dos (R² 0,85): ausencias −0,48 puntos
+      por punto (p < 0,001), calor +0,03 (p = 0,31, no significativo). PNG `04_contexto_externo.png`.
+- [x] Pregunta de control del bloque 4: bien la conclusión («los días de calor no mejoran el cumplimiento;
+      falta personal»). Corregido: «con menos personal se abren menos incidencias» — los tickets los abren
+      los clientes y con calor entran **más** incidencias de Infra. No dijo explícitamente qué resultado
+      creer → explicado (jul–ago, mismas ausencias) y por qué el aire acondicionado no mejora el SLA.
+- [x] Bloque 5 (perfiles, P6) escrito y probado. Decisión: K-Means solo con variables de uso (tamaño,
+      tickets/100 usuarios, % P1, % escalados, % incumplimiento), sin penalización ni nivel (sería circular).
+      k = 3 (codo en 3; silueta 0,33 vs 0,35 con k = 2 → estructura débil, se dice). Grupos: «Mayores, cumplen
+      mejor» (26: 8 Gold, 13 Silver, 5 Bronze), «Medianos, cumplen peor» (9: 8 Bronze, 1 Silver), «Pequeños con
+      muchos P1» (5 Bronze, 4,2 % P1, 17,8 % incumplimiento). Hallazgo: 5 Bronze con tamaño de Silver
+      (152–238 usuarios; Silver empieza en 200) y su servicio → candidatos a subir de nivel. PNG `05_clusters.png`.
+- [x] Ejecución de la estudiante (gráfico OK) + pregunta de control del bloque 5: a medias — dato correcto
+      («no todos los contratos penalizan») sin la consecuencia: con la penalización, K-Means solo redescubre
+      el contrato (comprobado: grupos = Bronze / Bronze / Gold+Silver), y el nivel se deja fuera para poder
+      comparar uso vs contrato. Lectura del bloque 5 escrita.
+- [x] Bloque 6 (previsión, P4) escrito y probado: Prophet sobre días laborables con post-festivos como
+      eventos. Validación jul–dic 2025: error medio 5,9 tickets/día (MAPE 11,6 %), 91 % de días dentro del
+      IC 95 %. T1 2026: 3.400 tickets (IC 2.520–4.276; sin festivos de 2026, no están en los datos).
+      Cumplimiento = 128,4 − 22,1 × carga (R² 0,67) → carga máx. 1,60 tickets/agente disponible/día para un
+      93 %. Agosto 2026: 49,3 tickets/día → 31 agentes disponibles de 35 → máx. 4 de vacaciones a la vez
+      (ago 2025: 10,4 fuera, 79,0 %). Tabla de sensibilidad 90–94 %. PNG `06_forecast.png`.
+      Pendiente menor: aún salen avisos de Prophet/plotly en la salida (cosmético).
+- [x] (2026-11-19) Ejecución de la estudiante del bloque 6 + pregunta de control: a medias — respondió para qué
+      sirve prever («prepararnos y actuar»), no por qué validar con datos no vistos. Explicado: sobreajuste;
+      ocultar un periodo simula el uso real y da el error esperable (±6 tickets/día). Lectura del 6 escrita;
+      avisos de Prophet/cmdstanpy silenciados (`cmdstanpy.disable_logging()`).
+- [x] Bloque 7 (riesgo, P5) escrito y probado: logística con variables conocidas con el ticket abierto (sin
+      fuga). Entreno 2024 (11.964), prueba 2025 (12.492): AUC 0,80; el 10 % de más riesgo contiene el 44,5 %
+      de los incumplidos. Odds: cada reasignación ×2,97, post-festivo ×1,99, Gold 0,29, Silver 0,58,
+      senior 0,54 (⚠ efecto inyectado, marcado como tal), calor 1,16 y tipo ≈ 1 (sin efecto claro).
+      Abiertos en plazo al corte: 124; 7.546 € en juego, 987 € de penalización esperada; los 15 primeros
+      concentran el 57 %. PNG `07_riesgo.png`.
+- [x] Pregunta de control del bloque 7: bien lo principal («solo se conoce cuando el ticket ya se cerró» →
+      fuga de información). Corregido otra vez el error recurrente «solo penalizan los P1 de Gold y Bronze»:
+      penaliza la resolución de todas las incidencias y peticiones de **Gold y Silver**; Bronze nunca; los P1
+      son 1.985 € de 142.513 € (1,4 %). ⚠ Repasar este punto: ya salió en la Fase 3 y en el bloque 3.
+      Lectura del bloque 7 escrita.
+- [x] Bloque 8 (hallazgos) en el cuaderno + `05_docs/insights_findings.md` (resumen ejecutivo, 7 hallazgos
+      dato / interpretación / acción con sus PNG, y apartado de honestidad: efectos inyectados, resultados
+      débiles y límites). Hallazgos: ① plantilla, no calor; ② cupo de 4 vacaciones en agosto; ③ reasignación
+      ×3; ④ N1 cumple mejor y penaliza más (contraintuitivo); ⑤ Gold no llega al 95 %; ⑥ post-festivo +24 %;
+      ⑦ 5 Bronze con servicio de Silver.
+- [x] Cuaderno completo en kernel limpio: 62 celdas, 0 errores, 0 avisos; 8 PNG en `outputs/`.
+
+**Definition of Done de la Fase 4:**
+- [x] El cuaderno corre de arriba abajo sin errores en un kernel limpio.
+- [x] Cada bloque tiene su celda de lectura que interpreta el resultado.
+- [x] PNG en `outputs/` con la paleta del proyecto (150 ppp).
+- [x] `insights_findings.md` con 7 hallazgos en formato dato / interpretación / acción.
+- [x] Al menos un hallazgo contraintuitivo o negativo (④ N1; calor sin efecto; perfiles débiles).
+- [ ] Ejecución final de la estudiante del cuaderno completo + commit de la Fase 4  ← ACÁ VOY
 
 ## Dudas abiertas
 - Tiempos concretos de la matriz SLA y de los tramos: abiertos a ajuste antes de la Fase 1.
