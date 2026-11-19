@@ -1,7 +1,7 @@
 # Progreso — Brújula Soporte IT · Service Desk SLA Analytics
 
 ## Estado actual
-**Fase:** 4 (Análisis Python; la 3 sigue abierta) · **Paso:** bloques 0 y 0.1 · **Última sesión:** 2026-11-18
+**Fase:** 4 cerrada (la 3 sigue abierta) · **Paso:** siguiente, cerrar la 3 o empezar la 5 · **Última sesión:** 2026-11-18
 
 ## Bitácora
 ### Fase 0 — Decidir ✅ (2026-10-15)
@@ -458,7 +458,9 @@ Plan aprobado: `04_analysis/eda_completo.ipynb`, bloques 0 · 0.1 · 1 descripti
 - [x] PNG en `outputs/` con la paleta del proyecto (150 ppp).
 - [x] `insights_findings.md` con 7 hallazgos en formato dato / interpretación / acción.
 - [x] Al menos un hallazgo contraintuitivo o negativo (④ N1; calor sin efecto; perfiles débiles).
-- [ ] Ejecución final de la estudiante del cuaderno completo + commit de la Fase 4  ← ACÁ VOY
+- [x] Commit `3257f74` subido (2026-11-19) con el cuaderno ejecutado en limpio. **Fase 4 cerrada.**
+
+**Siguiente:** cerrar la Fase 3 (página «Factores de contexto», measures_documentation.md, capturas) y Fase 5 (README, business_case.md, data_dictionary.md).  ← ACÁ VOY
 
 ## Dudas abiertas
 - Tiempos concretos de la matriz SLA y de los tramos: abiertos a ajuste antes de la Fase 1.
