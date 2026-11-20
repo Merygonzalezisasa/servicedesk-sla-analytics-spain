@@ -31,3 +31,6 @@ Thumbs.db
 desktop.ini
 .DS_Store
 .vscode/
+
+# --- Material de estudio personal: no se publica ---
+PREGUNTAS_DE_CONTROL.md

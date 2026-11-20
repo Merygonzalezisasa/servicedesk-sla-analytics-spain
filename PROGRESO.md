@@ -353,7 +353,8 @@ CHECKs (la base rechaza lo que no cumple las reglas del negocio).
       ⑥ dispersión de clientes (tickets × % incumplimiento, tamaño = penalización). Medidas nuevas:
       Tickets por día laborable, Incidencias Infra P1/P2 por día, Correlación ausencias-cumplimiento.
 - [ ] `03_powerbi/measures_documentation.md`: documentar las 106 medidas por familia (una frase cada una).
-- [ ] Capturas PNG de cada página en `03_powerbi/screenshots/` (vacía) para el README y LinkedIn.
+- [x] Capturas PNG de las 8 páginas en `03_powerbi/screenshots/` (2026-11-19, `powerbi-desktop screenshot-all`
+      con Desktop abierto, recortadas al lienzo).
 - [ ] Comprobar que el informe responde visualmente al menos 3 preguntas de la Ficha (P1 cumplimiento,
       P2 balance / Pareto, P5 backlog ya cubiertas; falta P3 / P4 contexto externo).
 - [ ] **Commit y publicación** (Fase 3 en curso, sin cerrar): desde `af67fd6` (2026-10-19) nada está
@@ -463,7 +464,23 @@ Plan aprobado: `04_analysis/eda_completo.ipynb`, bloques 0 · 0.1 · 1 descripti
       explicación, lenguaje más formal; sin las preguntas de control, que quedan en esta bitácora). Código y
       salidas sin cambios. Corregidas 2 erratas («una grupo», «:» sobrante).
 
-**Siguiente:** cerrar la Fase 3 (página «Factores de contexto», measures_documentation.md, capturas) y Fase 5 (README, business_case.md, data_dictionary.md).  ← ACÁ VOY
+**Siguiente:** cerrar la Fase 3 (página «Factores de contexto», measures_documentation.md, capturas) y Fase 5 (README, business_case.md, data_dictionary.md).
+
+### Fase 5 — Documentación y vitrina 🚧 (empezada el 2026-11-19)
+Plan: ① capturas · ② README completo · ③ `business_case.md` · ④ `data_dictionary.md` · ⑤ prueba de clonar
+como un tercero · ⑥ (opcional) página web en GitHub Pages.
+- [x] Historial de git revisado: sin `.env` ni contraseñas; LICENSE MIT.
+- [x] Capturas de las 8 páginas (cierra también ese punto de la Fase 3).
+- [x] README completo (2026-11-19): badges, tabla pregunta → técnica → resultado con cifras, 6 hallazgos,
+      capturas, modelo en estrella (12 tablas, 7 vistas, 30 índices, 3 procedimientos, 1 función),
+      estructura, puesta en marcha en 6 pasos, actualización periódica, herramientas, autora (LinkedIn y
+      GitHub) y declaración de datos sintéticos / reales. Enlaces comprobados.
+- [x] `data_dictionary.md` generado desde la base con `05_docs/generar_data_dictionary.py` (19 tablas y
+      vistas, 251 columnas con tipo, clave, descripción y ejemplo real; se regenera si cambia el esquema).
+- [x] `business_case.md`: organización, contratos y tramos, desafío, 6 preguntas, solución, resultado en
+      una línea y alcance y limitaciones (qué no se puede concluir). Enlaces de los 3 documentos comprobados.
+- [x] (2026-11-20) Commit de la Fase 5 subido: README, capturas, `05_docs` y el PBIX actualizado.
+- [ ] Prueba de clonar como un tercero  ← ACÁ VOY
 
 ## Dudas abiertas
 - Tiempos concretos de la matriz SLA y de los tramos: abiertos a ajuste antes de la Fase 1.
